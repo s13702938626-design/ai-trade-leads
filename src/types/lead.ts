@@ -28,6 +28,7 @@ export type Lead = {
   matchLevel: MatchLevel;
   status: LeadStatus;
   notes: string;
+  fetchedAt: string;
   createdAt: string;
   updatedAt: string;
 };

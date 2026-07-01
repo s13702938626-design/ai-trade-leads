@@ -36,6 +36,18 @@ export default function DashboardPage() {
         </LinkButton>
       </div>
 
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <h3 className="text-base font-semibold text-slate-950">Serper 实时搜索</h3>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            调用实时搜索 API 返回候选客户。搜索结果不会自动保存，必须人工确认 companyName、productKeyword 和 sourceUrl 后才能入库。
+          </p>
+          <LinkButton className="mt-4" href="/dashboard/serper" variant="secondary">
+            进入 Serper 实时搜索
+          </LinkButton>
+        </Card>
+      </div>
+
       {leads.length === 0 ? (
         <EmptyState title="暂无真实客户数据" description="请先通过搜索页找到公开来源，再手动录入客户或导入 CSV。" />
       ) : (

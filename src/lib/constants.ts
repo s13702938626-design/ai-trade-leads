@@ -53,4 +53,4 @@ export const LEAD_STATUSES: LeadStatus[] = [
   "invalid",
 ];
 
-export const LEAD_SOURCE_TYPES = ["manual_public_web"];
+export const LEAD_SOURCE_TYPES = ["manual_public_web", "serper_google_search"];
