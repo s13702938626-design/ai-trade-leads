@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const titles: Record<string, string> = {
   "/dashboard": "控制台",
   "/dashboard/search": "搜索词生成",
+  "/dashboard/serper": "Serper 实时搜索",
   "/dashboard/leads": "客户列表",
   "/dashboard/export": "导入导出",
 };

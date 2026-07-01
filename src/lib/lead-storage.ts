@@ -69,6 +69,7 @@ export function createLead(input: LeadInput): Lead {
     matchLevel: input.matchLevel || "unknown",
     status: input.status || "new",
     notes: input.notes.trim(),
+    fetchedAt: input.fetchedAt.trim(),
     createdAt: now,
     updatedAt: now,
   };
@@ -113,6 +114,7 @@ export function updateLead(id: string, input: LeadInput): Lead {
     matchLevel: input.matchLevel || "unknown",
     status: input.status || "new",
     notes: input.notes.trim(),
+    fetchedAt: input.fetchedAt.trim(),
     updatedAt: new Date().toISOString(),
   };
 

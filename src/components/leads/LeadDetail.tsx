@@ -36,6 +36,8 @@ export function LeadDetail({ lead }: { lead: Lead }) {
           <DetailRow label="官网" value={lead.website ? <a className="text-sky-700 hover:underline" href={lead.website} rel="noreferrer" target="_blank">{lead.website}</a> : ""} />
           <DetailRow label="来源链接" value={<a className="text-sky-700 hover:underline" href={lead.sourceUrl} rel="noreferrer" target="_blank">{lead.sourceUrl}</a>} />
           <DetailRow label="来源标题" value={lead.sourceTitle} />
+          <DetailRow label="来源类型" value={lead.sourceType} />
+          <DetailRow label="fetchedAt" value={lead.fetchedAt} />
         </div>
       </Card>
 

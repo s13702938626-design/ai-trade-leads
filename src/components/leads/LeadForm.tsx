@@ -33,6 +33,7 @@ function initialForm(lead?: Lead): LeadInput {
     matchLevel: lead?.matchLevel ?? "unknown",
     status: lead?.status ?? "new",
     notes: lead?.notes ?? "",
+    fetchedAt: lead?.fetchedAt ?? "",
   };
 }
 
