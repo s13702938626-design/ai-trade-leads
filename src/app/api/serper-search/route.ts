@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import type { SerperSearchCandidate } from "@/types/search";
+import { reviewSearchCandidate } from "@/lib/candidate-review";
 import { getDomainFromSearchLink, isLowQualitySearchResult } from "@/lib/search-result-filters";
 
 type SerperSearchRequest = {
   query?: unknown;
   country?: unknown;
+  productKeyword?: unknown;
+  customerType?: unknown;
   limit?: unknown;
 };
 
@@ -65,6 +68,8 @@ export async function POST(request: Request) {
 
   const query = typeof body.query === "string" ? body.query.trim() : "";
   const country = typeof body.country === "string" ? body.country.trim() : "";
+  const productKeyword = typeof body.productKeyword === "string" ? body.productKeyword.trim() : "";
+  const customerType = typeof body.customerType === "string" ? body.customerType.trim() : "";
   const limit = normalizeLimit(body.limit);
 
   if (!query) {
@@ -115,6 +120,16 @@ export async function POST(request: Request) {
         position,
         sourceType: "serper_google_search",
         fetchedAt,
+        review: reviewSearchCandidate({
+          title: item.title ?? "",
+          link,
+          domain: getDomainFromSearchLink(link),
+          snippet: item.snippet ?? "",
+          query,
+          productKeyword,
+          country,
+          customerType,
+        }),
       };
     });
 

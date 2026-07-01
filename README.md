@@ -1,6 +1,6 @@
-# 塑料材料行业外贸客户开发工作台 v0.3.1
+# 塑料材料行业外贸客户开发工作台 v0.3.2
 
-这是一个本地可运行的 B2B 外贸客户开发工作台，面向塑料材料行业。v0.3.1 用于辅助手动寻找真实海外客户、保存客户公开来源、生成搜索词、调用 Serper API 实时搜索候选客户，并生成可以复制给 ChatGPT 的客户分析 Prompt 和英文开发信 Prompt。
+这是一个本地可运行的 B2B 外贸客户开发工作台，面向塑料材料行业。v0.3.2 用于辅助手动寻找真实海外客户、保存客户公开来源、生成搜索词、调用 Serper API 实时搜索候选客户，并生成可以复制给 ChatGPT 的客户分析 Prompt 和英文开发信 Prompt。
 
 当前版本不接数据库、不接 AI API、不接邮箱群发，也不会自动保存搜索结果。Serper 搜索结果只能作为候选客户，必须由用户人工确认后才能保存。
 
@@ -46,6 +46,17 @@ npm run dev
 
 每次搜索后，页面会显示本次实际搜索词，以及 `rawOrganicCount`、`candidateCount`、`filteredOutCount`，方便判断是搜索词太窄，还是结果被明显无关平台过滤。
 
+v0.3.2 会对 Serper 候选结果做规则预审。预审只基于 Serper 返回的 `title`、`snippet`、`domain`、搜索词、产品关键词、国家和客户类型，不接 AI API，不编造公司信息。页面会显示预审分数、建议动作、匹配度、理由、风险、匹配信号和缺失信息。
+
+预审建议包括：
+
+- 建议保存
+- 继续研究
+- 不建议保存
+- 证据不足
+
+预审不是最终判断，不能替代人工打开官网确认。`reject` 的候选结果仍可人工保存，但系统会提示你再次确认。
+
 你需要勾选候选结果，点击“把选中结果加入待确认录入”，再人工确认 `companyName`、`productKeyword`、`sourceUrl` 等字段。只有点击“确认保存到客户列表”后，候选结果才会写入 localStorage。
 
 `email` 不允许猜，`country` 不允许猜；没有 `sourceUrl` 的客户不会保存。
@@ -76,7 +87,7 @@ id, companyName, website, domain, country, customerType, productKeyword, sourceU
 
 ## 实盘数据规则
 
-- v0.3.1 不自动保存搜索结果
+- v0.3.2 不自动保存搜索结果
 - 所有客户必须来自真实公开来源
 - `sourceUrl` 必填
 - `email` 不允许猜测
@@ -86,6 +97,7 @@ id, companyName, website, domain, country, customerType, productKeyword, sourceU
 - 不允许 seed fake data
 - 所有客户数据只能来自用户手动录入或 CSV 导入
 - Serper 搜索结果只能作为候选客户，不能自动保存
+- Serper 候选预审只是规则初筛建议，不是最终判断
 - 用户必须人工确认后才能保存客户
 - 保存 Serper 候选客户时必须保留 `sourceUrl`、`sourceTitle`、`sourceSnippet`、`sourceType`、`fetchedAt`
 

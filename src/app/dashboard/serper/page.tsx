@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { SerperSearchCandidate } from "@/types/search";
+import type { CandidateReviewDecision, SerperSearchCandidate } from "@/types/search";
 import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import { SerperCandidateTable } from "@/components/search/SerperCandidateTable";
 import {
   SerperSearchForm,
@@ -26,6 +27,16 @@ type SearchDebugInfo = {
   filteredOutCount: number;
 };
 
+type ReviewFilter = "all" | CandidateReviewDecision;
+
+const REVIEW_FILTERS: { value: ReviewFilter; label: string }[] = [
+  { value: "all", label: "全部候选" },
+  { value: "save", label: "只看建议保存" },
+  { value: "research_more", label: "只看继续研究" },
+  { value: "reject", label: "只看不建议保存" },
+  { value: "unknown", label: "只看证据不足" },
+];
+
 export default function SerperSearchPage() {
   const [values, setValues] = useState<SerperSearchFormValues | null>(null);
   const [candidates, setCandidates] = useState<SerperSearchCandidate[]>([]);
@@ -35,11 +46,28 @@ export default function SerperSearchPage() {
   const [error, setError] = useState("");
   const [lastQuery, setLastQuery] = useState("");
   const [debugInfo, setDebugInfo] = useState<SearchDebugInfo | null>(null);
+  const [reviewFilter, setReviewFilter] = useState<ReviewFilter>("all");
 
   const pendingCandidates = useMemo(
     () => candidates.filter((candidate) => pendingIds.includes(candidate.id)),
     [candidates, pendingIds],
   );
+  const reviewStats = useMemo(() => {
+    return {
+      total: candidates.length,
+      save: candidates.filter((candidate) => candidate.review?.decision === "save").length,
+      research_more: candidates.filter((candidate) => candidate.review?.decision === "research_more").length,
+      reject: candidates.filter((candidate) => candidate.review?.decision === "reject").length,
+      unknown: candidates.filter((candidate) => candidate.review?.decision === "unknown" || !candidate.review).length,
+    };
+  }, [candidates]);
+  const visibleCandidates = useMemo(() => {
+    if (reviewFilter === "all") {
+      return candidates;
+    }
+
+    return candidates.filter((candidate) => (candidate.review?.decision ?? "unknown") === reviewFilter);
+  }, [candidates, reviewFilter]);
 
   async function search(nextValues: SerperSearchFormValues) {
     setLoading(true);
@@ -60,6 +88,8 @@ export default function SerperSearchPage() {
         body: JSON.stringify({
           query: nextValues.query,
           country: nextValues.country,
+          productKeyword: nextValues.industry,
+          customerType: nextValues.customerType,
           limit: nextValues.limit,
         }),
       });
@@ -71,6 +101,7 @@ export default function SerperSearchPage() {
       }
 
       setCandidates(data.candidates);
+      setReviewFilter("all");
       setDebugInfo({
         rawOrganicCount: data.rawOrganicCount,
         candidateCount: data.candidateCount,
@@ -84,6 +115,21 @@ export default function SerperSearchPage() {
   }
 
   function toggleCandidate(id: string) {
+    const candidate = candidates.find((item) => item.id === id);
+    const willSelect = !selectedIds.includes(id);
+    const decision = candidate?.review?.decision ?? "unknown";
+
+    if (willSelect && decision === "reject") {
+      const confirmed = window.confirm("该候选结果被系统标记为不建议保存，是否仍要加入待确认录入？");
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    if (willSelect && decision === "research_more") {
+      window.alert("该候选结果建议先打开来源链接确认官网内容，再加入待确认录入。");
+    }
+
     setSelectedIds((current) =>
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
     );
@@ -140,12 +186,50 @@ export default function SerperSearchPage() {
       ) : null}
 
       {candidates.length > 0 ? (
-        <SerperCandidateTable
-          candidates={candidates}
-          onStageSelected={stageSelected}
-          onToggle={toggleCandidate}
-          selectedIds={selectedIds}
-        />
+        <div className="space-y-4">
+          <Card>
+            <div className="grid gap-3 md:grid-cols-5">
+              <div className="rounded-md bg-slate-50 px-3 py-3">
+                <p className="text-xs text-slate-500">候选总数</p>
+                <p className="mt-1 text-xl font-semibold text-slate-950">{reviewStats.total}</p>
+              </div>
+              <div className="rounded-md bg-emerald-50 px-3 py-3">
+                <p className="text-xs text-emerald-700">建议保存</p>
+                <p className="mt-1 text-xl font-semibold text-emerald-900">{reviewStats.save}</p>
+              </div>
+              <div className="rounded-md bg-sky-50 px-3 py-3">
+                <p className="text-xs text-sky-700">继续研究</p>
+                <p className="mt-1 text-xl font-semibold text-sky-900">{reviewStats.research_more}</p>
+              </div>
+              <div className="rounded-md bg-slate-100 px-3 py-3">
+                <p className="text-xs text-slate-600">不建议保存</p>
+                <p className="mt-1 text-xl font-semibold text-slate-900">{reviewStats.reject}</p>
+              </div>
+              <div className="rounded-md bg-slate-100 px-3 py-3">
+                <p className="text-xs text-slate-600">证据不足</p>
+                <p className="mt-1 text-xl font-semibold text-slate-900">{reviewStats.unknown}</p>
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {REVIEW_FILTERS.map((filter) => (
+                <Button
+                  key={filter.value}
+                  type="button"
+                  variant={reviewFilter === filter.value ? "primary" : "secondary"}
+                  onClick={() => setReviewFilter(filter.value)}
+                >
+                  {filter.label}
+                </Button>
+              ))}
+            </div>
+          </Card>
+          <SerperCandidateTable
+            candidates={visibleCandidates}
+            onStageSelected={stageSelected}
+            onToggle={toggleCandidate}
+            selectedIds={selectedIds}
+          />
+        </div>
       ) : lastQuery && !loading && !error ? (
         <Card>
           <h3 className="text-base font-semibold text-slate-950">本次搜索没有可展示候选</h3>

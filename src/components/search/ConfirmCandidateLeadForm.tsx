@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from "react";
 import type { LeadInput } from "@/types/lead";
-import type { SerperSearchCandidate } from "@/types/search";
+import type { CandidateReviewDecision, SerperSearchCandidate } from "@/types/search";
 import { addLead } from "@/lib/lead-storage";
 import { getDomainFromUrl, validateLeadInput } from "@/lib/validators";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -34,6 +35,34 @@ function originFromLink(link: string): string {
   } catch {
     return "";
   }
+}
+
+function decisionLabel(decision: CandidateReviewDecision): string {
+  const labels = {
+    save: "建议保存",
+    research_more: "继续研究",
+    reject: "不建议保存",
+    unknown: "证据不足",
+  };
+
+  return labels[decision];
+}
+
+function ReviewList({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div>
+      <p className="text-xs font-medium uppercase text-slate-500">{title}</p>
+      {items.length > 0 ? (
+        <ul className="mt-2 space-y-1 text-sm text-slate-700">
+          {items.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 text-sm text-slate-500">无</p>
+      )}
+    </div>
+  );
 }
 
 export function ConfirmCandidateLeadForm({
@@ -71,6 +100,7 @@ export function ConfirmCandidateLeadForm({
   const [error, setError] = useState("");
 
   const domain = getDomainFromUrl(form.website);
+  const review = candidate.review;
 
   function update<K extends keyof LeadInput>(key: K, value: LeadInput[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -111,6 +141,24 @@ export function ConfirmCandidateLeadForm({
       </div>
 
       {error ? <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
+
+      {review ? (
+        <div className="mt-5 rounded-md border border-slate-200 bg-slate-50 p-4">
+          <div className="flex flex-wrap gap-2">
+            <Badge tone={review.decision === "save" ? "green" : review.decision === "reject" ? "neutral" : "blue"}>
+              {decisionLabel(review.decision)}
+            </Badge>
+            <Badge>{`预审分数 ${review.score}`}</Badge>
+            <Badge>{`匹配度 ${review.fitLevel}`}</Badge>
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <ReviewList title="reasons" items={review.reasons} />
+            <ReviewList title="risks" items={review.risks} />
+            <ReviewList title="matchedSignals" items={review.matchedSignals} />
+            <ReviewList title="missingInfo" items={review.missingInfo} />
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <label className="space-y-2">
