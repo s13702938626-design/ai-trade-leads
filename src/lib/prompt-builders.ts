@@ -17,6 +17,7 @@ function leadFacts(lead: Lead): string {
     `Address: ${lead.address || "Not provided"}`,
     `Notes: ${lead.notes || "Not provided"}`,
     `Fetched at: ${lead.fetchedAt || "Not provided"}`,
+    `Search run ID: ${lead.searchRunId || "Not provided"}`,
   ].join("\n");
 }
 

@@ -2,7 +2,12 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { CUSTOMER_TYPES, INDUSTRY_DIRECTIONS, TARGET_COUNTRIES } from "@/lib/constants";
-import { buildSearchQueries } from "@/lib/search-queries";
+import {
+  buildSearchStrategyQueries,
+  SEARCH_MODES,
+  type SearchMode,
+  type SearchStrategyQuery,
+} from "@/lib/search-strategies";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -14,10 +19,12 @@ export type SerperSearchFormValues = {
   customerType: string;
   limit: number;
   query: string;
+  mode: SearchMode | "custom";
 };
 
 type SerperSearchFormProps = {
   loading: boolean;
+  queryOverride?: string;
   onSearch: (values: SerperSearchFormValues) => void;
 };
 
@@ -37,11 +44,12 @@ const PRACTICAL_SEARCH_TERMS = [
   "injection molding factory United States",
 ];
 
-export function SerperSearchForm({ loading, onSearch }: SerperSearchFormProps) {
+export function SerperSearchForm({ loading, queryOverride, onSearch }: SerperSearchFormProps) {
   const [industry, setIndustry] = useState(INDUSTRY_DIRECTIONS[0]);
   const [country, setCountry] = useState(TARGET_COUNTRIES[0]);
   const [customerType, setCustomerType] = useState(CUSTOMER_TYPES[0]);
   const [limit, setLimit] = useState(10);
+  const [mode, setMode] = useState<SearchMode>("general_customer");
   const [customQuery, setCustomQuery] = useState(() =>
     buildPrimarySerperQuery(INDUSTRY_DIRECTIONS[0], CUSTOMER_TYPES[0], TARGET_COUNTRIES[0]),
   );
@@ -50,9 +58,9 @@ export function SerperSearchForm({ loading, onSearch }: SerperSearchFormProps) {
     () => buildPrimarySerperQuery(industry, customerType, country),
     [country, customerType, industry],
   );
-  const recommendedQueries = useMemo(
-    () => buildSearchQueries({ industry, country, customerType }),
-    [country, customerType, industry],
+  const strategyQueries = useMemo(
+    () => buildSearchStrategyQueries({ productKeyword: industry, country, customerType, mode }),
+    [country, customerType, industry, mode],
   );
   const actualQuery = customQuery.trim() || defaultQuery;
 
@@ -60,25 +68,44 @@ export function SerperSearchForm({ loading, onSearch }: SerperSearchFormProps) {
     setCustomQuery(defaultQuery);
   }, [defaultQuery]);
 
-  function runSearch(query: string) {
+  useEffect(() => {
+    if (queryOverride) {
+      setCustomQuery(queryOverride);
+    }
+  }, [queryOverride]);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const customsQuery = searchParams.get("customsQuery");
+    const customsCountry = searchParams.get("country");
+    if (customsQuery) {
+      setCustomQuery(customsQuery);
+    }
+    if (customsCountry) {
+      setCountry(customsCountry);
+    }
+  }, []);
+
+  function runSearch(query: string, searchMode: SearchMode | "custom" = mode) {
     const nextQuery = query.trim();
     if (!nextQuery) {
       return;
     }
 
-    onSearch({ industry, country, customerType, limit, query: nextQuery });
+    onSearch({ industry, country, customerType, limit, query: nextQuery, mode: searchMode });
   }
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    runSearch(actualQuery);
+    const searchMode = strategyQueries.some((strategy) => strategy.query === actualQuery) ? mode : "custom";
+    runSearch(actualQuery, searchMode);
   }
 
   return (
     <div className="space-y-4">
       <Card>
         <form className="space-y-5" onSubmit={submit}>
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-5">
           <label className="space-y-2">
             <span className="text-sm font-medium text-slate-700">行业方向</span>
             <Select value={industry} onChange={(event) => setIndustry(event.target.value)}>
@@ -119,6 +146,16 @@ export function SerperSearchForm({ loading, onSearch }: SerperSearchFormProps) {
               ))}
             </Select>
           </label>
+          <label className="space-y-2">
+            <span className="text-sm font-medium text-slate-700">搜索模式</span>
+            <Select value={mode} onChange={(event) => setMode(event.target.value as SearchMode)}>
+              {SEARCH_MODES.map((item) => (
+                <option key={item.key} value={item.key}>
+                  {item.label}
+                </option>
+              ))}
+            </Select>
+          </label>
         </div>
 
         <label className="block space-y-2">
@@ -142,19 +179,29 @@ export function SerperSearchForm({ loading, onSearch }: SerperSearchFormProps) {
       </Card>
 
       <Card>
-        <h3 className="text-base font-semibold text-slate-950">推荐搜索词</h3>
+        <h3 className="text-base font-semibold text-slate-950">搜索策略列表</h3>
+        <p className="mt-1 text-sm text-slate-600">
+          {SEARCH_MODES.find((item) => item.key === mode)?.description}
+        </p>
         <div className="mt-4 space-y-3">
-          {recommendedQueries.map((query) => (
+          {strategyQueries.map((strategy: SearchStrategyQuery) => (
             <div
               className="flex flex-col gap-2 rounded-md bg-slate-50 p-3 lg:flex-row lg:items-center lg:justify-between"
-              key={query}
+              key={strategy.id}
             >
-              <p className="text-sm font-medium text-slate-950">{query}</p>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-semibold text-slate-950">{strategy.label}</p>
+                  <span className="rounded bg-white px-2 py-1 text-xs text-slate-600">{strategy.strictness}</span>
+                </div>
+                <p className="mt-1 text-sm font-medium text-slate-950">{strategy.query}</p>
+                <p className="mt-1 text-xs text-slate-500">{strategy.purpose}</p>
+              </div>
               <div className="flex flex-wrap gap-2">
-                <Button type="button" variant="secondary" onClick={() => setCustomQuery(query)}>
+                <Button type="button" variant="secondary" onClick={() => setCustomQuery(strategy.query)}>
                   使用此搜索词
                 </Button>
-                <Button type="button" disabled={loading} onClick={() => runSearch(query)}>
+                <Button type="button" disabled={loading} onClick={() => runSearch(strategy.query, strategy.mode)}>
                   调用 Serper 搜索
                 </Button>
               </div>

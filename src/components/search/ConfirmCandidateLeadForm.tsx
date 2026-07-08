@@ -18,6 +18,7 @@ type ConfirmCandidateLeadFormProps = {
   country: string;
   customerType: string;
   productKeyword: string;
+  searchRunId?: string | null;
   onSaved: (candidateId: string) => void;
   onCancel: (candidateId: string) => void;
 };
@@ -70,6 +71,7 @@ export function ConfirmCandidateLeadForm({
   country,
   customerType,
   productKeyword,
+  searchRunId,
   onSaved,
   onCancel,
 }: ConfirmCandidateLeadFormProps) {
@@ -93,8 +95,9 @@ export function ConfirmCandidateLeadForm({
       status: "researching",
       notes: "",
       fetchedAt: candidate.fetchedAt,
+      searchRunId: searchRunId ?? candidate.searchRunId ?? null,
     }),
-    [candidate, country, customerType, productKeyword],
+    [candidate, country, customerType, productKeyword, searchRunId],
   );
   const [form, setForm] = useState<LeadInput>(initial);
   const [error, setError] = useState("");
@@ -120,6 +123,7 @@ export function ConfirmCandidateLeadForm({
       sourceSnippet: candidate.snippet,
       sourceType: candidate.sourceType,
       fetchedAt: candidate.fetchedAt,
+      searchRunId: searchRunId ?? candidate.searchRunId ?? null,
       email: "",
       phone: "",
       linkedinUrl: "",

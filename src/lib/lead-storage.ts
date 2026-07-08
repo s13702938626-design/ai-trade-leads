@@ -70,6 +70,7 @@ export function createLead(input: LeadInput): Lead {
     status: input.status || "new",
     notes: input.notes.trim(),
     fetchedAt: input.fetchedAt.trim(),
+    searchRunId: input.searchRunId ?? null,
     createdAt: now,
     updatedAt: now,
   };
@@ -115,6 +116,7 @@ export function updateLead(id: string, input: LeadInput): Lead {
     status: input.status || "new",
     notes: input.notes.trim(),
     fetchedAt: input.fetchedAt.trim(),
+    searchRunId: input.searchRunId ?? null,
     updatedAt: new Date().toISOString(),
   };
 

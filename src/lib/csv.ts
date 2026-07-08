@@ -23,6 +23,7 @@ export const CSV_HEADERS: (keyof Lead)[] = [
   "status",
   "notes",
   "fetchedAt",
+  "searchRunId",
   "createdAt",
   "updatedAt",
 ];
@@ -157,6 +158,7 @@ export function csvToLeads(csv: string): ImportResult {
         status,
         notes: record.notes ?? "",
         fetchedAt: record.fetchedAt ?? "",
+        searchRunId: record.searchRunId || null,
       });
       leads.push({
         ...lead,

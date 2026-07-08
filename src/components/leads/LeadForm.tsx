@@ -34,6 +34,7 @@ function initialForm(lead?: Lead): LeadInput {
     status: lead?.status ?? "new",
     notes: lead?.notes ?? "",
     fetchedAt: lead?.fetchedAt ?? "",
+    searchRunId: lead?.searchRunId ?? null,
   };
 }
 

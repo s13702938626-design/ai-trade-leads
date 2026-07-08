@@ -29,6 +29,7 @@ export type Lead = {
   status: LeadStatus;
   notes: string;
   fetchedAt: string;
+  searchRunId?: string | null;
   createdAt: string;
   updatedAt: string;
 };

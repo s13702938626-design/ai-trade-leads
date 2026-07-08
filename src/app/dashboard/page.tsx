@@ -3,18 +3,42 @@
 import { useEffect, useState } from "react";
 import type { Lead } from "@/types/lead";
 import { getLeads } from "@/lib/lead-storage";
+import { getSearchRunStats } from "@/lib/search-run-storage";
+import { getCustomsLeadStats } from "@/lib/customs-storage";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LinkButton } from "@/components/ui/Button";
 
 export default function DashboardPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [searchStats, setSearchStats] = useState({
+    searchCount: 0,
+    candidateCount: 0,
+    reviewedSaveCount: 0,
+    savedLeadCount: 0,
+    saveRate: 0,
+  });
+  const [customsStats, setCustomsStats] = useState({
+    total: 0,
+    highPriority: 0,
+    converted: 0,
+  });
 
   useEffect(() => {
-    const refresh = () => setLeads(getLeads());
+    const refresh = () => {
+      setLeads(getLeads());
+      setSearchStats(getSearchRunStats());
+      setCustomsStats(getCustomsLeadStats());
+    };
     refresh();
     window.addEventListener("leads:updated", refresh);
-    return () => window.removeEventListener("leads:updated", refresh);
+    window.addEventListener("search-runs:updated", refresh);
+    window.addEventListener("customs-leads:updated", refresh);
+    return () => {
+      window.removeEventListener("leads:updated", refresh);
+      window.removeEventListener("search-runs:updated", refresh);
+      window.removeEventListener("customs-leads:updated", refresh);
+    };
   }, []);
 
   const stats = [
@@ -45,6 +69,46 @@ export default function DashboardPage() {
           <LinkButton className="mt-4" href="/dashboard/serper" variant="secondary">
             进入 Serper 实时搜索
           </LinkButton>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-5">
+        <Card>
+          <p className="text-sm text-slate-500">最近搜索次数</p>
+          <p className="mt-3 text-3xl font-semibold text-slate-950">{searchStats.searchCount}</p>
+        </Card>
+        <Card>
+          <p className="text-sm text-slate-500">最近候选客户数量</p>
+          <p className="mt-3 text-3xl font-semibold text-slate-950">{searchStats.candidateCount}</p>
+        </Card>
+        <Card>
+          <p className="text-sm text-slate-500">最近建议保存数量</p>
+          <p className="mt-3 text-3xl font-semibold text-slate-950">{searchStats.reviewedSaveCount}</p>
+        </Card>
+        <Card>
+          <p className="text-sm text-slate-500">最近实际保存数量</p>
+          <p className="mt-3 text-3xl font-semibold text-slate-950">{searchStats.savedLeadCount}</p>
+        </Card>
+        <Card>
+          <p className="text-sm text-slate-500">保存率</p>
+          <p className="mt-3 text-3xl font-semibold text-slate-950">
+            {`${Math.round(searchStats.saveRate * 100)}%`}
+          </p>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <p className="text-sm text-slate-500">海关线索数量</p>
+          <p className="mt-3 text-3xl font-semibold text-slate-950">{customsStats.total}</p>
+        </Card>
+        <Card>
+          <p className="text-sm text-slate-500">P0/P1 高优先级海关线索</p>
+          <p className="mt-3 text-3xl font-semibold text-slate-950">{customsStats.highPriority}</p>
+        </Card>
+        <Card>
+          <p className="text-sm text-slate-500">已转客户数量</p>
+          <p className="mt-3 text-3xl font-semibold text-slate-950">{customsStats.converted}</p>
         </Card>
       </div>
 

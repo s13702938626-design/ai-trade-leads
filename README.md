@@ -1,6 +1,6 @@
-# 塑料材料行业外贸客户开发工作台 v0.3.2
+# 塑料材料行业外贸客户开发工作台 v0.3.4
 
-这是一个本地可运行的 B2B 外贸客户开发工作台，面向塑料材料行业。v0.3.2 用于辅助手动寻找真实海外客户、保存客户公开来源、生成搜索词、调用 Serper API 实时搜索候选客户，并生成可以复制给 ChatGPT 的客户分析 Prompt 和英文开发信 Prompt。
+这是一个本地可运行的 B2B 外贸客户开发工作台，面向塑料材料行业。v0.3.4 用于辅助手动寻找真实海外客户、保存客户公开来源、生成搜索策略、调用 Serper API 实时搜索候选客户、导入合法来源海关 CSV，并生成可以复制给 ChatGPT 的客户分析 Prompt 和英文开发信 Prompt。
 
 当前版本不接数据库、不接 AI API、不接邮箱群发，也不会自动保存搜索结果。Serper 搜索结果只能作为候选客户，必须由用户人工确认后才能保存。
 
@@ -42,7 +42,7 @@ npm run dev
 
 系统会调用服务端 `/api/serper-search`，从 Serper 返回 Google organic 结果，并过滤明显无关平台。返回结果只是候选客户，不会自动保存。
 
-页面会展示 10 条推荐搜索词，每条都可以一键填入，或直接调用 Serper 搜索。页面也提供实盘测试词，例如 `plastic distributor United States`、`plastic resin distributor United States`、`masterbatch distributor United States`。
+页面会展示搜索策略列表，每条都可以一键填入，或直接调用 Serper 搜索。页面也提供实盘测试词，例如 `plastic distributor United States`、`plastic resin distributor United States`、`masterbatch distributor United States`。
 
 每次搜索后，页面会显示本次实际搜索词，以及 `rawOrganicCount`、`candidateCount`、`filteredOutCount`，方便判断是搜索词太窄，还是结果被明显无关平台过滤。
 
@@ -57,9 +57,23 @@ v0.3.2 会对 Serper 候选结果做规则预审。预审只基于 Serper 返回
 
 预审不是最终判断，不能替代人工打开官网确认。`reject` 的候选结果仍可人工保存，但系统会提示你再次确认。
 
+v0.3.3 将 Serper 搜索升级为搜索策略工作台，支持普通客户搜索、官网 Contact 搜索、LinkedIn 决策人搜索、Google Maps 实体搜索、展会目录搜索和邮箱线索搜索。每种模式会生成 8-12 条搜索策略，展示 `label`、`query`、`purpose` 和 `strictness`。
+
+当搜索没有候选结果时，页面会展示搜索收缩建议，例如从精准色母分销词放宽到 `masterbatch`、`color concentrate`、`plastic additives`、`resin distributor`、`plastic distributor`。页面也会记录最近搜索效果，只保存 query、模式、候选数量、预审数量、实际保存数量等统计，不保存 API Key，也不保存完整 Serper 原始响应。
+
 你需要勾选候选结果，点击“把选中结果加入待确认录入”，再人工确认 `companyName`、`productKeyword`、`sourceUrl` 等字段。只有点击“确认保存到客户列表”后，候选结果才会写入 localStorage。
 
 `email` 不允许猜，`country` 不允许猜；没有 `sourceUrl` 的客户不会保存。
+
+## 如何使用海关数据反查进口商
+
+进入 `/dashboard/customs`。当前模块不是直接查询付费海关数据库，也不会假装接入真实海关 API。你可以从自己购买或合法获取的海关数据平台导出 CSV 后导入。
+
+页面支持 HS Code / 产品词搜索模板，用于查找海关数据入口或公开进口记录。模板只是搜索 query，不代表系统已经拿到海关数据。
+
+CSV 导入会尽量识别不同平台字段，例如 importer、buyer、consignee、product_description、hs_code、shipment_date、quantity、source_url 等。系统会按最近采购记录、采购频率、采购量、HS Code 和产品描述做规则评分，生成 P0/P1/P2/P3 优先级。
+
+海关线索必须人工确认后才能转为客户线索。缺少来源的海关线索可以导入为待补来源状态，但不能转为 Lead，除非用户补充 `sourceUrl`。系统不猜邮箱、不猜国家、不自动保存客户、不生成虚假海关记录。
 
 ## 如何手动录入真实客户
 
@@ -82,12 +96,12 @@ v0.3.2 会对 Serper 候选结果做规则预审。预审只基于 Serper 返回
 CSV 字段包含：
 
 ```text
-id, companyName, website, domain, country, customerType, productKeyword, sourceUrl, sourceTitle, sourceSnippet, sourceType, evidenceText, email, phone, linkedinUrl, address, matchLevel, status, notes, fetchedAt, createdAt, updatedAt
+id, companyName, website, domain, country, customerType, productKeyword, sourceUrl, sourceTitle, sourceSnippet, sourceType, evidenceText, email, phone, linkedinUrl, address, matchLevel, status, notes, fetchedAt, searchRunId, createdAt, updatedAt
 ```
 
 ## 实盘数据规则
 
-- v0.3.2 不自动保存搜索结果
+- v0.3.4 不自动保存搜索结果
 - 所有客户必须来自真实公开来源
 - `sourceUrl` 必填
 - `email` 不允许猜测
@@ -100,6 +114,11 @@ id, companyName, website, domain, country, customerType, productKeyword, sourceU
 - Serper 候选预审只是规则初筛建议，不是最终判断
 - 用户必须人工确认后才能保存客户
 - 保存 Serper 候选客户时必须保留 `sourceUrl`、`sourceTitle`、`sourceSnippet`、`sourceType`、`fetchedAt`
+- 搜索策略只生成真实搜索 query，不编造客户
+- 搜索效果记录只基于真实搜索结果数量和用户操作，不允许假统计
+- 海关数据模块不直接查询付费数据库，不假装接入真实海关 API
+- 海关数据只能来自用户手动录入或 CSV 导入
+- 不生成虚假海关记录
 
 ## 下一阶段计划
 

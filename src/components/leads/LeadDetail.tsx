@@ -38,6 +38,7 @@ export function LeadDetail({ lead }: { lead: Lead }) {
           <DetailRow label="来源标题" value={lead.sourceTitle} />
           <DetailRow label="来源类型" value={lead.sourceType} />
           <DetailRow label="fetchedAt" value={lead.fetchedAt} />
+          <DetailRow label="searchRunId" value={lead.searchRunId} />
         </div>
       </Card>
 

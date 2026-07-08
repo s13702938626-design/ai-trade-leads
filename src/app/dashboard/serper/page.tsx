@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type { CandidateReviewDecision, SerperSearchCandidate } from "@/types/search";
+import { useEffect, useMemo, useState } from "react";
+import type { CandidateReviewDecision, SearchRunRecord, SerperSearchCandidate } from "@/types/search";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { SerperCandidateTable } from "@/components/search/SerperCandidateTable";
@@ -10,6 +10,13 @@ import {
   type SerperSearchFormValues,
 } from "@/components/search/SerperSearchForm";
 import { ConfirmCandidateLeadForm } from "@/components/search/ConfirmCandidateLeadForm";
+import { buildRelaxedQueries } from "@/lib/search-relaxation";
+import {
+  clearSearchRuns,
+  listSearchRuns,
+  saveSearchRun,
+  updateSearchRunSavedLeadCount,
+} from "@/lib/search-run-storage";
 
 type SerperSearchResponse = {
   query: string;
@@ -47,6 +54,16 @@ export default function SerperSearchPage() {
   const [lastQuery, setLastQuery] = useState("");
   const [debugInfo, setDebugInfo] = useState<SearchDebugInfo | null>(null);
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>("all");
+  const [searchRunId, setSearchRunId] = useState<string | null>(null);
+  const [searchRuns, setSearchRuns] = useState<SearchRunRecord[]>([]);
+  const [queryOverride, setQueryOverride] = useState("");
+
+  useEffect(() => {
+    const refresh = () => setSearchRuns(listSearchRuns());
+    refresh();
+    window.addEventListener("search-runs:updated", refresh);
+    return () => window.removeEventListener("search-runs:updated", refresh);
+  }, []);
 
   const pendingCandidates = useMemo(
     () => candidates.filter((candidate) => pendingIds.includes(candidate.id)),
@@ -68,6 +85,25 @@ export default function SerperSearchPage() {
 
     return candidates.filter((candidate) => (candidate.review?.decision ?? "unknown") === reviewFilter);
   }, [candidates, reviewFilter]);
+  const relaxedQueries = useMemo(() => {
+    if (!values || (debugInfo?.candidateCount ?? 1) > 0) {
+      return [];
+    }
+
+    return buildRelaxedQueries({
+      productKeyword: values.industry,
+      country: values.country,
+      customerType: values.customerType,
+    });
+  }, [debugInfo?.candidateCount, values]);
+
+  function createRunId(): string {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+      return crypto.randomUUID();
+    }
+
+    return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
 
   async function search(nextValues: SerperSearchFormValues) {
     setLoading(true);
@@ -100,12 +136,35 @@ export default function SerperSearchPage() {
         return;
       }
 
-      setCandidates(data.candidates);
+      const runId = createRunId();
+      const candidatesWithRunId = data.candidates.map((candidate) => ({
+        ...candidate,
+        searchRunId: runId,
+      }));
+      setSearchRunId(runId);
+      setCandidates(candidatesWithRunId);
       setReviewFilter("all");
       setDebugInfo({
         rawOrganicCount: data.rawOrganicCount,
         candidateCount: data.candidateCount,
         filteredOutCount: data.filteredOutCount,
+      });
+      saveSearchRun({
+        id: runId,
+        query: data.query,
+        mode: nextValues.mode,
+        productKeyword: nextValues.industry,
+        country: nextValues.country,
+        customerType: nextValues.customerType,
+        rawOrganicCount: data.rawOrganicCount,
+        candidateCount: data.candidateCount,
+        filteredOutCount: data.filteredOutCount,
+        reviewedSaveCount: candidatesWithRunId.filter((candidate) => candidate.review?.decision === "save").length,
+        reviewedResearchMoreCount: candidatesWithRunId.filter((candidate) => candidate.review?.decision === "research_more").length,
+        reviewedRejectCount: candidatesWithRunId.filter((candidate) => candidate.review?.decision === "reject").length,
+        reviewedUnknownCount: candidatesWithRunId.filter((candidate) => candidate.review?.decision === "unknown" || !candidate.review).length,
+        savedLeadCount: 0,
+        fetchedAt: data.fetchedAt,
       });
     } catch {
       setError("Serper 搜索请求失败，请检查网络或服务端配置。");
@@ -145,6 +204,9 @@ export default function SerperSearchPage() {
   }
 
   function removeAfterSaved(id: string) {
+    if (searchRunId) {
+      updateSearchRunSavedLeadCount(searchRunId, 1);
+    }
     setPendingIds((current) => current.filter((item) => item !== id));
     setCandidates((current) => current.filter((item) => item.id !== id));
   }
@@ -158,7 +220,7 @@ export default function SerperSearchPage() {
         </p>
       </div>
 
-      <SerperSearchForm loading={loading} onSearch={search} />
+      <SerperSearchForm loading={loading} onSearch={search} queryOverride={queryOverride} />
 
       {error ? <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
 
@@ -254,6 +316,52 @@ export default function SerperSearchPage() {
         </Card>
       ) : null}
 
+      {relaxedQueries.length > 0 ? (
+        <Card>
+          <h3 className="text-base font-semibold text-slate-950">搜索收缩建议</h3>
+          <p className="mt-1 text-sm text-slate-600">当前搜索没有候选结果，可以尝试更宽泛的搜索词。</p>
+          <div className="mt-4 space-y-3">
+            {relaxedQueries.map((strategy) => (
+              <div
+                className="flex flex-col gap-2 rounded-md bg-slate-50 p-3 lg:flex-row lg:items-center lg:justify-between"
+                key={strategy.id}
+              >
+                <div>
+                  <p className="text-sm font-semibold text-slate-950">{strategy.label}</p>
+                  <p className="mt-1 text-sm font-medium text-slate-950">{strategy.query}</p>
+                  <p className="mt-1 text-xs text-slate-500">{strategy.purpose}</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setQueryOverride(strategy.query)}
+                  >
+                    使用此收缩词
+                  </Button>
+                  <Button
+                    type="button"
+                    disabled={loading}
+                    onClick={() =>
+                      search({
+                        industry: values?.industry ?? "",
+                        country: values?.country ?? "",
+                        customerType: values?.customerType ?? "",
+                        limit: values?.limit ?? 10,
+                        query: strategy.query,
+                        mode: strategy.mode,
+                      })
+                    }
+                  >
+                    直接搜索
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : null}
+
       {pendingCandidates.length > 0 ? (
         <div className="space-y-4">
           <div>
@@ -269,10 +377,63 @@ export default function SerperSearchPage() {
               onCancel={removePending}
               onSaved={removeAfterSaved}
               productKeyword={values?.industry ?? ""}
+              searchRunId={candidate.searchRunId ?? searchRunId}
             />
           ))}
         </div>
       ) : null}
+
+      <Card>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h3 className="text-base font-semibold text-slate-950">最近搜索效果</h3>
+            <p className="mt-1 text-sm text-slate-600">只记录 query 和统计数量，不保存 API Key 或 Serper 原始响应。</p>
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              clearSearchRuns();
+              setSearchRuns([]);
+            }}
+          >
+            清空搜索记录
+          </Button>
+        </div>
+        <div className="mt-4 overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-200 text-sm">
+            <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
+              <tr>
+                <th className="px-3 py-2">时间</th>
+                <th className="px-3 py-2">模式</th>
+                <th className="px-3 py-2">query</th>
+                <th className="px-3 py-2">raw</th>
+                <th className="px-3 py-2">候选</th>
+                <th className="px-3 py-2">建议保存</th>
+                <th className="px-3 py-2">继续研究</th>
+                <th className="px-3 py-2">不建议</th>
+                <th className="px-3 py-2">已保存</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200">
+              {searchRuns.slice(0, 10).map((record) => (
+                <tr key={record.id}>
+                  <td className="px-3 py-2 text-slate-700">{record.fetchedAt}</td>
+                  <td className="px-3 py-2 text-slate-700">{record.mode}</td>
+                  <td className="max-w-md px-3 py-2 text-slate-950">{record.query}</td>
+                  <td className="px-3 py-2 text-slate-700">{record.rawOrganicCount}</td>
+                  <td className="px-3 py-2 text-slate-700">{record.candidateCount}</td>
+                  <td className="px-3 py-2 text-slate-700">{record.reviewedSaveCount}</td>
+                  <td className="px-3 py-2 text-slate-700">{record.reviewedResearchMoreCount}</td>
+                  <td className="px-3 py-2 text-slate-700">{record.reviewedRejectCount}</td>
+                  <td className="px-3 py-2 text-slate-700">{record.savedLeadCount}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {searchRuns.length === 0 ? <p className="py-6 text-center text-sm text-slate-500">暂无真实搜索记录</p> : null}
+        </div>
+      </Card>
     </div>
   );
 }
