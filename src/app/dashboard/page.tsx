@@ -47,6 +47,15 @@ export default function DashboardPage() {
     { label: "已发送客户数", value: leads.filter((lead) => lead.status === "emailed").length },
     { label: "已回复客户数", value: leads.filter((lead) => lead.status === "replied").length },
   ];
+  const aiStats = [
+    { label: "已 AI 分析客户数量", value: leads.filter((lead) => lead.aiAnalysis).length },
+    { label: "AI 建议立即开发数量", value: leads.filter((lead) => lead.aiAnalysis?.recommendedDecision === "develop_now").length },
+    { label: "AI 建议继续调研数量", value: leads.filter((lead) => lead.aiAnalysis?.recommendedDecision === "research_more").length },
+    {
+      label: "AI 高匹配客户数量",
+      value: leads.filter((lead) => lead.aiAnalysis?.fitLevel === "high" || (lead.aiAnalysis?.fitScore ?? 0) >= 80).length,
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -110,6 +119,15 @@ export default function DashboardPage() {
           <p className="text-sm text-slate-500">已转客户数量</p>
           <p className="mt-3 text-3xl font-semibold text-slate-950">{customsStats.converted}</p>
         </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-4">
+        {aiStats.map((item) => (
+          <Card key={item.label}>
+            <p className="text-sm text-slate-500">{item.label}</p>
+            <p className="mt-3 text-3xl font-semibold text-slate-950">{item.value}</p>
+          </Card>
+        ))}
       </div>
 
       {leads.length === 0 ? (

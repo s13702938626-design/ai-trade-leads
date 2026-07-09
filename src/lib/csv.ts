@@ -28,6 +28,18 @@ export const CSV_HEADERS: (keyof Lead)[] = [
   "updatedAt",
 ];
 
+const AI_CSV_HEADERS = [
+  "aiFitScore",
+  "aiFitLevel",
+  "aiRecommendedDecision",
+  "aiSummary",
+  "aiOpeningAngle",
+  "aiNextAction",
+  "aiConfidence",
+  "aiAnalyzedAt",
+  "aiModel",
+] as const;
+
 type ImportResult = {
   leads: Lead[];
   errors: string[];
@@ -44,8 +56,21 @@ function escapeCsvValue(value: unknown): string {
 
 export function leadsToCsv(leads: Lead[]): string {
   const rows = [
-    CSV_HEADERS.join(","),
-    ...leads.map((lead) => CSV_HEADERS.map((header) => escapeCsvValue(lead[header])).join(",")),
+    [...CSV_HEADERS, ...AI_CSV_HEADERS].join(","),
+    ...leads.map((lead) =>
+      [
+        ...CSV_HEADERS.map((header) => escapeCsvValue(lead[header])),
+        escapeCsvValue(lead.aiAnalysis?.fitScore ?? ""),
+        escapeCsvValue(lead.aiAnalysis?.fitLevel ?? ""),
+        escapeCsvValue(lead.aiAnalysis?.recommendedDecision ?? ""),
+        escapeCsvValue(lead.aiAnalysis?.summary ?? ""),
+        escapeCsvValue(lead.aiAnalysis?.openingAngle ?? ""),
+        escapeCsvValue(lead.aiAnalysis?.nextAction ?? ""),
+        escapeCsvValue(lead.aiAnalysis?.confidence ?? ""),
+        escapeCsvValue(lead.aiAnalyzedAt ?? ""),
+        escapeCsvValue(lead.aiModel ?? ""),
+      ].join(","),
+    ),
   ];
 
   return rows.join("\n");

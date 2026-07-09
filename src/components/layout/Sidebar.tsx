@@ -19,7 +19,7 @@ export function Sidebar() {
     <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white md:block">
       <div className="border-b border-slate-200 px-5 py-5">
         <p className="text-sm font-semibold text-slate-950">AI Trade Leads</p>
-        <p className="mt-1 text-xs text-slate-500">塑料材料外贸 v0.3.4</p>
+        <p className="mt-1 text-xs text-slate-500">塑料材料外贸 v0.4</p>
       </div>
       <nav className="space-y-1 p-3">
         {navItems.map((item) => {

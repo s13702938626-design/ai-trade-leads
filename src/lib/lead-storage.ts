@@ -1,6 +1,6 @@
 "use client";
 
-import type { Lead, LeadInput } from "@/types/lead";
+import type { Lead, LeadAiAnalysis, LeadInput } from "@/types/lead";
 import { getDomainFromUrl, isLead, normalizeOptional, validateLeadInput } from "@/lib/validators";
 
 const STORAGE_KEY = "ai-trade-leads:v0.1:leads";
@@ -71,6 +71,9 @@ export function createLead(input: LeadInput): Lead {
     notes: input.notes.trim(),
     fetchedAt: input.fetchedAt.trim(),
     searchRunId: input.searchRunId ?? null,
+    aiAnalysis: input.aiAnalysis ?? null,
+    aiAnalyzedAt: input.aiAnalyzedAt ?? null,
+    aiModel: input.aiModel ?? null,
     createdAt: now,
     updatedAt: now,
   };
@@ -117,6 +120,9 @@ export function updateLead(id: string, input: LeadInput): Lead {
     notes: input.notes.trim(),
     fetchedAt: input.fetchedAt.trim(),
     searchRunId: input.searchRunId ?? null,
+    aiAnalysis: input.aiAnalysis ?? leads[index].aiAnalysis ?? null,
+    aiAnalyzedAt: input.aiAnalyzedAt ?? leads[index].aiAnalyzedAt ?? null,
+    aiModel: input.aiModel ?? leads[index].aiModel ?? null,
     updatedAt: new Date().toISOString(),
   };
 
@@ -131,6 +137,30 @@ export function deleteLead(id: string): void {
 
 export function replaceLeads(leads: Lead[]): void {
   saveLeads(leads);
+}
+
+export function updateLeadAiAnalysis(
+  leadId: string,
+  analysis: LeadAiAnalysis,
+  model: string,
+  analyzedAt: string,
+): Lead {
+  const leads = getLeads();
+  const index = leads.findIndex((lead) => lead.id === leadId);
+  if (index === -1) {
+    throw new Error("Lead not found");
+  }
+
+  const updated: Lead = {
+    ...leads[index],
+    aiAnalysis: analysis,
+    aiAnalyzedAt: analyzedAt,
+    aiModel: model,
+    updatedAt: new Date().toISOString(),
+  };
+  leads[index] = updated;
+  saveLeads(leads);
+  return updated;
 }
 
 export { STORAGE_KEY };

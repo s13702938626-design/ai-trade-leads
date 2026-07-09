@@ -30,6 +30,9 @@ export function LeadTable({ leads, onEdit, onDelete }: LeadTableProps) {
               <th className="px-4 py-3">产品</th>
               <th className="px-4 py-3">类型</th>
               <th className="px-4 py-3">匹配</th>
+              <th className="px-4 py-3">AI 分数</th>
+              <th className="px-4 py-3">AI 建议</th>
+              <th className="px-4 py-3">AI 分析时间</th>
               <th className="px-4 py-3">状态</th>
               <th className="px-4 py-3">操作</th>
             </tr>
@@ -49,6 +52,9 @@ export function LeadTable({ leads, onEdit, onDelete }: LeadTableProps) {
                 <td className="px-4 py-3">
                   <Badge tone={matchTone(lead.matchLevel)}>{lead.matchLevel}</Badge>
                 </td>
+                <td className="px-4 py-3 text-slate-700">{lead.aiAnalysis?.fitScore ?? ""}</td>
+                <td className="px-4 py-3 text-slate-700">{lead.aiAnalysis?.recommendedDecision ?? ""}</td>
+                <td className="px-4 py-3 text-slate-700">{lead.aiAnalyzedAt ?? ""}</td>
                 <td className="px-4 py-3">
                   <Badge tone={lead.status === "replied" ? "green" : "blue"}>{lead.status}</Badge>
                 </td>

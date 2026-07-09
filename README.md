@@ -1,6 +1,6 @@
-# 塑料材料行业外贸客户开发工作台 v0.3.4
+# 塑料材料行业外贸客户开发工作台 v0.4
 
-这是一个本地可运行的 B2B 外贸客户开发工作台，面向塑料材料行业。v0.3.4 用于辅助手动寻找真实海外客户、保存客户公开来源、生成搜索策略、调用 Serper API 实时搜索候选客户、导入合法来源海关 CSV，并生成可以复制给 ChatGPT 的客户分析 Prompt 和英文开发信 Prompt。
+这是一个本地可运行的 B2B 外贸客户开发工作台，面向塑料材料行业。v0.4 用于辅助手动寻找真实海外客户、保存客户公开来源、生成搜索策略、调用 Serper API 实时搜索候选客户、导入合法来源海关 CSV，并对已保存 Lead 做服务端 AI 客户深度分析。
 
 当前版本不接数据库、不接 AI API、不接邮箱群发，也不会自动保存搜索结果。Serper 搜索结果只能作为候选客户，必须由用户人工确认后才能保存。
 
@@ -18,9 +18,12 @@ npm install
 
 ```bash
 SERPER_API_KEY=自己的 Serper API Key
+AI_BASE_URL=OpenAI-compatible API Base URL
+AI_API_KEY=自己的 AI API Key
+AI_MODEL=自己选择的模型
 ```
 
-不要提交 `.env.local`。项目只会在服务端 API Route 中读取 `SERPER_API_KEY`，不会把 API Key 保存到浏览器 localStorage，也不会写入前端代码。
+不要提交 `.env.local`。项目只会在服务端 API Route 中读取 `SERPER_API_KEY` 和 `AI_API_KEY`，不会把 API Key 保存到浏览器 localStorage，也不会写入前端代码。
 
 ## 如何本地启动
 
@@ -75,6 +78,22 @@ CSV 导入会尽量识别不同平台字段，例如 importer、buyer、consigne
 
 海关线索必须人工确认后才能转为客户线索。缺少来源的海关线索可以导入为待补来源状态，但不能转为 Lead，除非用户补充 `sourceUrl`。系统不猜邮箱、不猜国家、不自动保存客户、不生成虚假海关记录。
 
+## v0.4 AI 客户深度分析
+
+在客户详情页可以点击“AI 分析客户”。系统会通过服务端 `/api/analyze-lead` 调用 OpenAI-compatible Chat Completions API，并把分析结果保存到本地 Lead。
+
+AI 分析支持：
+
+- 客户真实度判断
+- 客户匹配度评分
+- 推荐开发等级
+- 推荐开发产品方向
+- 第一封开发信切入角度
+- 风险和缺失信息提示
+- 下一步动作建议
+
+AI 只能基于 Lead 已有真实字段分析，不得编造官网、邮箱、联系人、国家或采购记录。AI 分析结果只是建议，不自动发送邮件，不自动修改客户状态，不暴露 API Key。如果没有配置 `AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL`，页面会显示“AI API 未配置”，不会崩溃。
+
 ## 如何手动录入真实客户
 
 进入 `/dashboard/leads`，点击“新增客户”。必填字段：
@@ -101,7 +120,7 @@ id, companyName, website, domain, country, customerType, productKeyword, sourceU
 
 ## 实盘数据规则
 
-- v0.3.4 不自动保存搜索结果
+- v0.4 不自动保存搜索结果
 - 所有客户必须来自真实公开来源
 - `sourceUrl` 必填
 - `email` 不允许猜测
@@ -119,6 +138,11 @@ id, companyName, website, domain, country, customerType, productKeyword, sourceU
 - 海关数据模块不直接查询付费数据库，不假装接入真实海关 API
 - 海关数据只能来自用户手动录入或 CSV 导入
 - 不生成虚假海关记录
+- AI 分析必须走服务端 API
+- AI 不自动发送邮件
+- AI 不自动修改客户状态
+- AI 不编造邮箱、联系人、国家、采购记录
+- 不暴露 API Key
 
 ## 下一阶段计划
 
