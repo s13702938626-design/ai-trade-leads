@@ -40,6 +40,15 @@ const AI_CSV_HEADERS = [
   "aiModel",
 ] as const;
 
+const PIPELINE_CSV_HEADERS = [
+  "pipelineStatus",
+  "lastContactedAt",
+  "nextFollowUpAt",
+  "followUpTaskCount",
+  "pendingFollowUpTaskCount",
+  "activityCount",
+] as const;
+
 type ImportResult = {
   leads: Lead[];
   errors: string[];
@@ -56,7 +65,7 @@ function escapeCsvValue(value: unknown): string {
 
 export function leadsToCsv(leads: Lead[]): string {
   const rows = [
-    [...CSV_HEADERS, ...AI_CSV_HEADERS].join(","),
+    [...CSV_HEADERS, ...AI_CSV_HEADERS, ...PIPELINE_CSV_HEADERS].join(","),
     ...leads.map((lead) =>
       [
         ...CSV_HEADERS.map((header) => escapeCsvValue(lead[header])),
@@ -69,6 +78,12 @@ export function leadsToCsv(leads: Lead[]): string {
         escapeCsvValue(lead.aiAnalysis?.confidence ?? ""),
         escapeCsvValue(lead.aiAnalyzedAt ?? ""),
         escapeCsvValue(lead.aiModel ?? ""),
+        escapeCsvValue(lead.pipelineStatus ?? ""),
+        escapeCsvValue(lead.lastContactedAt ?? ""),
+        escapeCsvValue(lead.nextFollowUpAt ?? ""),
+        escapeCsvValue((lead.followUpTasks ?? []).length),
+        escapeCsvValue((lead.followUpTasks ?? []).filter((task) => task.status === "pending").length),
+        escapeCsvValue((lead.activities ?? []).length),
       ].join(","),
     ),
   ];

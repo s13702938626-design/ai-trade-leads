@@ -35,6 +35,58 @@ export type LeadAiAnalysis = {
   confidence: "high" | "medium" | "low";
 };
 
+export type LeadPipelineStatus =
+  | "new"
+  | "research_more"
+  | "ready_to_contact"
+  | "contacted"
+  | "follow_up"
+  | "replied"
+  | "qualified"
+  | "hold"
+  | "rejected";
+
+export type LeadContactChannel =
+  | "email"
+  | "linkedin"
+  | "whatsapp"
+  | "phone"
+  | "website_form"
+  | "other";
+
+export type LeadActivityType =
+  | "status_change"
+  | "contact_attempt"
+  | "reply_received"
+  | "follow_up_scheduled"
+  | "note_added"
+  | "qualified"
+  | "rejected";
+
+export type LeadFollowUpTask = {
+  id: string;
+  leadId: string;
+  title: string;
+  dueDate: string;
+  status: "pending" | "completed" | "cancelled";
+  channel: LeadContactChannel;
+  note: string;
+  createdAt: string;
+  completedAt?: string | null;
+};
+
+export type LeadActivity = {
+  id: string;
+  leadId: string;
+  type: LeadActivityType;
+  title: string;
+  note: string;
+  channel?: LeadContactChannel;
+  fromStatus?: LeadPipelineStatus;
+  toStatus?: LeadPipelineStatus;
+  createdAt: string;
+};
+
 export type Lead = {
   id: string;
   companyName: string;
@@ -60,6 +112,11 @@ export type Lead = {
   aiAnalysis?: LeadAiAnalysis | null;
   aiAnalyzedAt?: string | null;
   aiModel?: string | null;
+  pipelineStatus?: LeadPipelineStatus;
+  lastContactedAt?: string | null;
+  nextFollowUpAt?: string | null;
+  followUpTasks?: LeadFollowUpTask[];
+  activities?: LeadActivity[];
   createdAt: string;
   updatedAt: string;
 };

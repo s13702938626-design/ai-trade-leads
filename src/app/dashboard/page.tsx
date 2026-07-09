@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Lead } from "@/types/lead";
-import { getLeads } from "@/lib/lead-storage";
+import { getFollowUpStats, getLeads } from "@/lib/lead-storage";
 import { getSearchRunStats } from "@/lib/search-run-storage";
 import { getCustomsLeadStats } from "@/lib/customs-storage";
 import { Card } from "@/components/ui/Card";
@@ -56,6 +56,7 @@ export default function DashboardPage() {
       value: leads.filter((lead) => lead.aiAnalysis?.fitLevel === "high" || (lead.aiAnalysis?.fitScore ?? 0) >= 80).length,
     },
   ];
+  const followUpStats = getFollowUpStats();
 
   return (
     <div className="space-y-6">
@@ -123,6 +124,22 @@ export default function DashboardPage() {
 
       <div className="grid gap-4 md:grid-cols-4">
         {aiStats.map((item) => (
+          <Card key={item.label}>
+            <p className="text-sm text-slate-500">{item.label}</p>
+            <p className="mt-3 text-3xl font-semibold text-slate-950">{item.value}</p>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-6">
+        {[
+          { label: "待开发客户数量", value: followUpStats.readyToContactCount },
+          { label: "今日待跟进数量", value: followUpStats.todayFollowUpCount },
+          { label: "逾期待跟进数量", value: followUpStats.overdueFollowUpCount },
+          { label: "已联系数量", value: followUpStats.contactedCount },
+          { label: "已回复数量", value: followUpStats.repliedCount },
+          { label: "合格客户数量", value: followUpStats.qualifiedCount },
+        ].map((item) => (
           <Card key={item.label}>
             <p className="text-sm text-slate-500">{item.label}</p>
             <p className="mt-3 text-3xl font-semibold text-slate-950">{item.value}</p>
