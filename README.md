@@ -1,8 +1,8 @@
-# 塑料材料行业外贸客户开发工作台 v0.5
+# 塑料材料行业外贸客户开发工作台 v0.6
 
-这是一个本地可运行的 B2B 外贸客户开发工作台，面向塑料材料行业。v0.5 用于辅助手动寻找真实海外客户、保存客户公开来源、生成搜索策略、调用 Serper API 实时搜索候选客户、导入合法来源海关 CSV、对已保存 Lead 做服务端 AI 客户深度分析，并管理本地客户开发跟进流程。
+这是一个本地可运行的 B2B 外贸客户开发工作台，面向塑料材料行业。v0.6 用于辅助手动寻找真实海外客户、保存客户公开来源、生成搜索策略、调用 Serper API 实时搜索候选客户、导入合法来源海关 CSV、对已保存 Lead 做服务端 AI 客户深度分析，管理本地客户开发跟进流程，并生成多渠道开发话术草稿。
 
-当前版本不接数据库、不接 AI API、不接邮箱群发，也不会自动保存搜索结果。Serper 搜索结果只能作为候选客户，必须由用户人工确认后才能保存。
+当前版本不接数据库、不接邮箱群发，也不会自动保存搜索结果。Serper 搜索结果只能作为候选客户，必须由用户人工确认后才能保存。AI 和 Serper API Key 只在服务端读取，不会进入前端 bundle 或 localStorage。
 
 ## 如何安装依赖
 
@@ -110,6 +110,31 @@ v0.5 支持：
 
 本版本不自动发邮件，不接 Gmail API，不自动联系客户，也不根据 AI 建议自动修改客户状态。所有状态变化、联系记录和跟进任务都必须由用户点击明确动作按钮。系统不编造联系人、邮箱、电话或 WhatsApp，继续使用 localStorage，不引入数据库。
 
+## v0.6 开发信草稿生成 / 多渠道开发话术
+
+进入客户详情页，可以为已保存 Lead 生成并保存开发话术草稿。支持渠道：
+
+- 第一封开发信
+- 二次跟进邮件
+- LinkedIn 私信
+- WhatsApp 开场白
+- 网站表单留言
+- 已回复后沟通
+
+草稿生成支持语言、语气、产品重点、我方公司简介、优势、案例参考和额外要求。AI 草稿通过服务端 `/api/generate-outreach-draft` 调用 OpenAI-compatible Chat Completions API，复用 `AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL`。
+
+如果没有配置 AI API，页面会显示配置提示，不会崩溃。客户详情页也提供基础模板按钮，无 AI API 时可以生成基础草稿。基础模板只使用当前 Lead 已有字段，不编造联系人、邮箱、电话、WhatsApp、国家、采购记录或认证信息。
+
+进入 `/dashboard/outreach` 可以查看：
+
+- 有开发话术草稿的客户数量
+- 草稿总数
+- 各渠道草稿数量
+- 已有草稿客户列表
+- 待生成话术建议
+
+v0.6 只生成、复制、保存草稿，不自动发送邮件，不调用 Gmail / LinkedIn / WhatsApp API，不自动联系客户，不自动修改客户状态。用户必须人工复制草稿并自行判断是否使用。
+
 ## 如何手动录入真实客户
 
 进入 `/dashboard/leads`，点击“新增客户”。必填字段：
@@ -128,15 +153,15 @@ v0.5 支持：
 
 进入 `/dashboard/export`，选择 CSV 文件导入。导入时 `companyName`、`productKeyword`、`sourceUrl` 必填；如果失败，页面会提示具体失败行。
 
-CSV 字段包含：
+CSV 字段包含基础 Lead 字段、AI 分析摘要字段、跟进摘要字段和话术草稿摘要字段：
 
 ```text
-id, companyName, website, domain, country, customerType, productKeyword, sourceUrl, sourceTitle, sourceSnippet, sourceType, evidenceText, email, phone, linkedinUrl, address, matchLevel, status, notes, fetchedAt, searchRunId, createdAt, updatedAt
+id, companyName, website, domain, country, customerType, productKeyword, sourceUrl, sourceTitle, sourceSnippet, sourceType, evidenceText, email, phone, linkedinUrl, address, matchLevel, status, notes, fetchedAt, searchRunId, createdAt, updatedAt, aiFitScore, aiFitLevel, aiRecommendedDecision, aiSummary, aiOpeningAngle, aiNextAction, aiConfidence, aiAnalyzedAt, aiModel, pipelineStatus, lastContactedAt, nextFollowUpAt, followUpTaskCount, pendingFollowUpTaskCount, activityCount, outreachDraftCount, latestOutreachDraftAt, latestOutreachChannel, latestOutreachLanguage
 ```
 
 ## 实盘数据规则
 
-- v0.5 不自动保存搜索结果
+- v0.6 不自动保存搜索结果
 - 所有客户必须来自真实公开来源
 - `sourceUrl` 必填
 - `email` 不允许猜测
@@ -162,10 +187,13 @@ id, companyName, website, domain, country, customerType, productKeyword, sourceU
 - 客户开发动作必须由用户点击触发
 - 不自动发邮件
 - 不编造联系人、邮箱、电话、WhatsApp
+- 开发话术草稿只基于 Lead 已有真实字段和用户输入生成
+- 开发话术不自动发送、不自动联系客户、不自动修改客户状态
+- 不接 Gmail API、LinkedIn API、WhatsApp API 或 SMTP 群发
+- 不承诺未经验证的价格、交期、认证、代理权或合作历史
 
 ## 下一阶段计划
 
 - 接 Supabase
-- 接 AI API
 - 接 SMTP 邮件
 - 接 CRM 跟进

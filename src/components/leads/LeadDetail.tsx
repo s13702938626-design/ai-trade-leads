@@ -7,11 +7,14 @@ import { Card } from "@/components/ui/Card";
 import { AiProfilePromptBox } from "@/components/prompts/AiProfilePromptBox";
 import { ColdEmailPromptBox } from "@/components/prompts/ColdEmailPromptBox";
 import { LeadAiAnalysisPanel } from "@/components/leads/LeadAiAnalysisPanel";
-import { completeFollowUpTask, cancelFollowUpTask } from "@/lib/lead-storage";
+import { completeFollowUpTask, cancelFollowUpTask, getLeads } from "@/lib/lead-storage";
 import { LeadActivityTimeline } from "@/components/followups/LeadActivityTimeline";
 import { LeadPipelineActions } from "@/components/followups/LeadPipelineActions";
 import { PipelineStatusBadge } from "@/components/followups/PipelineStatusBadge";
 import { Button } from "@/components/ui/Button";
+import { OutreachDraftGenerator } from "@/components/outreach/OutreachDraftGenerator";
+import { OutreachDraftList } from "@/components/outreach/OutreachDraftList";
+import { OutreachQuickTemplates } from "@/components/outreach/OutreachQuickTemplates";
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -28,6 +31,11 @@ export function LeadDetail({ lead }: { lead: Lead }) {
   useEffect(() => {
     setCurrentLead(lead);
   }, [lead]);
+
+  function refreshCurrentLead() {
+    const latestLead = getLeads().find((item) => item.id === currentLead.id);
+    if (latestLead) setCurrentLead(latestLead);
+  }
 
   return (
     <div className="space-y-6">
@@ -57,6 +65,17 @@ export function LeadDetail({ lead }: { lead: Lead }) {
       </Card>
 
       <LeadAiAnalysisPanel lead={currentLead} onUpdated={setCurrentLead} />
+      <OutreachDraftGenerator lead={currentLead} onUpdated={setCurrentLead} />
+      <OutreachQuickTemplates lead={currentLead} onUpdated={setCurrentLead} />
+
+      <Card>
+        <h2 className="text-base font-semibold text-slate-950">历史开发话术草稿</h2>
+        <p className="mt-1 text-sm text-slate-600">草稿只保存到本地，不会自动发送，也不会自动修改客户状态。</p>
+        <div className="mt-4">
+          <OutreachDraftList drafts={currentLead.outreachDrafts ?? []} onChanged={refreshCurrentLead} />
+        </div>
+      </Card>
+
       <LeadPipelineActions lead={currentLead} onUpdated={setCurrentLead} />
 
       <Card>

@@ -57,6 +57,21 @@ export default function DashboardPage() {
     },
   ];
   const followUpStats = getFollowUpStats();
+  const outreachStats = [
+    { label: "有开发话术客户", value: leads.filter((lead) => (lead.outreachDrafts ?? []).length > 0).length },
+    { label: "开发话术草稿总数", value: leads.reduce((total, lead) => total + (lead.outreachDrafts ?? []).length, 0) },
+    {
+      label: "待生成话术客户",
+      value: leads.filter((lead) => {
+        if ((lead.outreachDrafts ?? []).length > 0) return false;
+        return (
+          lead.aiAnalysis?.recommendedDecision === "develop_now" ||
+          lead.pipelineStatus === "ready_to_contact" ||
+          lead.pipelineStatus === "contacted"
+        );
+      }).length,
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -78,6 +93,15 @@ export default function DashboardPage() {
           </p>
           <LinkButton className="mt-4" href="/dashboard/serper" variant="secondary">
             进入 Serper 实时搜索
+          </LinkButton>
+        </Card>
+        <Card>
+          <h3 className="text-base font-semibold text-slate-950">开发话术中心</h3>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            为已保存客户生成邮件、LinkedIn、WhatsApp 和网站表单草稿。草稿只保存到本地，不会自动发送。
+          </p>
+          <LinkButton className="mt-4" href="/dashboard/outreach" variant="secondary">
+            进入开发话术中心
           </LinkButton>
         </Card>
       </div>
@@ -140,6 +164,15 @@ export default function DashboardPage() {
           { label: "已回复数量", value: followUpStats.repliedCount },
           { label: "合格客户数量", value: followUpStats.qualifiedCount },
         ].map((item) => (
+          <Card key={item.label}>
+            <p className="text-sm text-slate-500">{item.label}</p>
+            <p className="mt-3 text-3xl font-semibold text-slate-950">{item.value}</p>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        {outreachStats.map((item) => (
           <Card key={item.label}>
             <p className="text-sm text-slate-500">{item.label}</p>
             <p className="mt-3 text-3xl font-semibold text-slate-950">{item.value}</p>

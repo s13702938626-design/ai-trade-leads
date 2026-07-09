@@ -1,3 +1,5 @@
+import type { OutreachDraft } from "@/types/outreach";
+
 export type MatchLevel = "high" | "medium" | "low" | "unknown";
 
 export type LeadStatus =
@@ -117,6 +119,7 @@ export type Lead = {
   nextFollowUpAt?: string | null;
   followUpTasks?: LeadFollowUpTask[];
   activities?: LeadActivity[];
+  outreachDrafts?: OutreachDraft[];
   createdAt: string;
   updatedAt: string;
 };

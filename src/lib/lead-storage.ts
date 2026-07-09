@@ -9,6 +9,7 @@ import type {
   LeadInput,
   LeadPipelineStatus,
 } from "@/types/lead";
+import type { OutreachDraft } from "@/types/outreach";
 import { getDomainFromUrl, isLead, normalizeOptional, validateLeadInput } from "@/lib/validators";
 
 const STORAGE_KEY = "ai-trade-leads:v0.1:leads";
@@ -29,6 +30,7 @@ function normalizeLead(lead: Lead): Lead {
     nextFollowUpAt: lead.nextFollowUpAt ?? null,
     followUpTasks: Array.isArray(lead.followUpTasks) ? lead.followUpTasks : [],
     activities: Array.isArray(lead.activities) ? lead.activities : [],
+    outreachDrafts: Array.isArray(lead.outreachDrafts) ? lead.outreachDrafts : [],
   };
 }
 
@@ -131,6 +133,7 @@ export function createLead(input: LeadInput): Lead {
     nextFollowUpAt: input.nextFollowUpAt ?? null,
     followUpTasks: input.followUpTasks ?? [],
     activities: input.activities ?? [],
+    outreachDrafts: input.outreachDrafts ?? [],
     createdAt: now,
     updatedAt: now,
   };
@@ -185,6 +188,7 @@ export function updateLead(id: string, input: LeadInput): Lead {
     nextFollowUpAt: input.nextFollowUpAt ?? leads[index].nextFollowUpAt ?? null,
     followUpTasks: input.followUpTasks ?? leads[index].followUpTasks ?? [],
     activities: input.activities ?? leads[index].activities ?? [],
+    outreachDrafts: input.outreachDrafts ?? leads[index].outreachDrafts ?? [],
     updatedAt: new Date().toISOString(),
   };
 
@@ -406,6 +410,24 @@ export function getFollowUpStats() {
     todayFollowUpCount: pendingTasks.filter((task) => task.dueDate === today).length,
     followUpCount: leads.filter((lead) => lead.pipelineStatus === "follow_up").length,
   };
+}
+
+export function saveOutreachDraft(leadId: string, draft: OutreachDraft): Lead {
+  return mutateLead(leadId, (lead) => ({
+    ...lead,
+    outreachDrafts: [draft, ...(lead.outreachDrafts ?? [])],
+  }));
+}
+
+export function deleteOutreachDraft(leadId: string, draftId: string): Lead {
+  return mutateLead(leadId, (lead) => ({
+    ...lead,
+    outreachDrafts: (lead.outreachDrafts ?? []).filter((draft) => draft.id !== draftId),
+  }));
+}
+
+export function getLeadOutreachDrafts(leadId: string): OutreachDraft[] {
+  return getLeads().find((lead) => lead.id === leadId)?.outreachDrafts ?? [];
 }
 
 export { STORAGE_KEY };

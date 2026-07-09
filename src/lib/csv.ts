@@ -49,6 +49,13 @@ const PIPELINE_CSV_HEADERS = [
   "activityCount",
 ] as const;
 
+const OUTREACH_CSV_HEADERS = [
+  "outreachDraftCount",
+  "latestOutreachDraftAt",
+  "latestOutreachChannel",
+  "latestOutreachLanguage",
+] as const;
+
 type ImportResult = {
   leads: Lead[];
   errors: string[];
@@ -65,9 +72,11 @@ function escapeCsvValue(value: unknown): string {
 
 export function leadsToCsv(leads: Lead[]): string {
   const rows = [
-    [...CSV_HEADERS, ...AI_CSV_HEADERS, ...PIPELINE_CSV_HEADERS].join(","),
-    ...leads.map((lead) =>
-      [
+    [...CSV_HEADERS, ...AI_CSV_HEADERS, ...PIPELINE_CSV_HEADERS, ...OUTREACH_CSV_HEADERS].join(","),
+    ...leads.map((lead) => {
+      const outreachDrafts = lead.outreachDrafts ?? [];
+      const latestOutreachDraft = [...outreachDrafts].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+      return [
         ...CSV_HEADERS.map((header) => escapeCsvValue(lead[header])),
         escapeCsvValue(lead.aiAnalysis?.fitScore ?? ""),
         escapeCsvValue(lead.aiAnalysis?.fitLevel ?? ""),
@@ -84,8 +93,12 @@ export function leadsToCsv(leads: Lead[]): string {
         escapeCsvValue((lead.followUpTasks ?? []).length),
         escapeCsvValue((lead.followUpTasks ?? []).filter((task) => task.status === "pending").length),
         escapeCsvValue((lead.activities ?? []).length),
-      ].join(","),
-    ),
+        escapeCsvValue(outreachDrafts.length),
+        escapeCsvValue(latestOutreachDraft?.createdAt ?? ""),
+        escapeCsvValue(latestOutreachDraft?.channel ?? ""),
+        escapeCsvValue(latestOutreachDraft?.language ?? ""),
+      ].join(",");
+    }),
   ];
 
   return rows.join("\n");
