@@ -1,4 +1,6 @@
 import type { CandidateReview, CandidateReviewDecision } from "@/types/search";
+import type { ProductLineId, SearchQueryPlan } from "@/types/search-intelligence";
+import { classifyCandidateResult } from "@/lib/candidate-classifier";
 
 type ReviewSearchCandidateInput = {
   title: string;
@@ -9,6 +11,11 @@ type ReviewSearchCandidateInput = {
   productKeyword: string;
   country: string;
   customerType: string;
+};
+
+type ReviewSearchCandidateContext = {
+  productLineId?: ProductLineId;
+  searchPlan?: SearchQueryPlan;
 };
 
 type SignalRule = {
@@ -255,5 +262,102 @@ export function reviewSearchCandidate(input: ReviewSearchCandidateInput): Candid
     missingInfo,
     suggestedCustomerType: customerType,
     suggestedProductKeyword: productKeyword,
+  };
+}
+
+export function reviewCandidate(
+  input: ReviewSearchCandidateInput,
+  context?: ReviewSearchCandidateContext,
+): CandidateReview {
+  if (!context?.productLineId || context.productLineId === "custom") {
+    return reviewSearchCandidate(input);
+  }
+
+  const classification = classifyCandidateResult(
+    {
+      title: input.title,
+      link: input.link,
+      domain: input.domain,
+      snippet: input.snippet,
+    },
+    {
+      productLineId: context.productLineId,
+      searchPlan: context.searchPlan,
+    },
+  );
+  const reasons = [...classification.classificationReasons];
+  const risks = [...classification.rejectionReasons];
+  const missingInfo: string[] = [];
+
+  if (!input.title) missingInfo.push("缺少 title");
+  if (!input.snippet) missingInfo.push("缺少 snippet，证据不足");
+  if (!input.domain) missingInfo.push("缺少 domain");
+  if (!input.link) missingInfo.push("缺少 sourceUrl");
+  if (classification.matchedPositiveTerms.length === 0) {
+    missingInfo.push("未看到当前产品线目标买家正向信号");
+  }
+
+  let score = classification.buyerFitScore;
+  let decision: CandidateReviewDecision = "unknown";
+  let fitLevel: CandidateReview["fitLevel"] = "unknown";
+
+  if (classification.businessRole === "peer_supplier") {
+    score = Math.min(45, Math.max(20, classification.buyerFitScore - Math.floor(classification.peerRiskScore / 2)));
+    decision = "reject";
+    fitLevel = "low";
+    risks.push("该结果可能是同行/供应商，默认不作为目标客户保存");
+  } else if (classification.businessRole === "irrelevant") {
+    score = Math.min(30, classification.relevanceScore);
+    decision = "reject";
+    fitLevel = "low";
+  } else if (classification.businessRole === "directory_or_platform") {
+    score = Math.max(40, Math.min(60, classification.relevanceScore));
+    decision = "research_more";
+    fitLevel = "medium";
+    risks.push("来源是目录或平台页，不是公司官网，建议点开确认");
+  } else if (classification.businessRole === "content_article") {
+    score = Math.max(25, Math.min(50, classification.relevanceScore));
+    decision = "research_more";
+    fitLevel = "low";
+  } else if (classification.businessRole === "target_end_user") {
+    score = Math.max(classification.buyerFitScore, classification.relevanceScore);
+    decision = score >= 75 ? "save" : "research_more";
+    fitLevel = score >= 75 ? "high" : "medium";
+    reasons.push("该结果更像当前产品线的目标使用商");
+  } else if (classification.businessRole === "target_distributor" || classification.businessRole === "target_trader") {
+    score = Math.max(55, Math.min(85, classification.buyerFitScore + 10));
+    decision = score >= 70 ? "save" : "research_more";
+    fitLevel = score >= 70 ? "high" : "medium";
+    reasons.push("该结果更像贸易商/分销商渠道客户");
+  } else if (missingInfo.length >= 3) {
+    score = Math.min(34, classification.relevanceScore);
+    decision = "unknown";
+    fitLevel = "unknown";
+  } else {
+    score = Math.max(35, Math.min(55, classification.relevanceScore));
+    decision = "research_more";
+    fitLevel = "low";
+  }
+
+  return {
+    score: clampScore(score),
+    decision,
+    fitLevel,
+    reasons: reasons.length > 0 ? reasons : ["当前结果需要人工打开来源进一步确认"],
+    risks,
+    matchedSignals: classification.matchedPositiveTerms,
+    missingInfo,
+    suggestedCustomerType: input.customerType,
+    suggestedProductKeyword: input.productKeyword,
+    businessRole: classification.businessRole,
+    productLineId: classification.productLineId,
+    buyerPersonaId: classification.buyerPersonaId,
+    buyerFitScore: classification.buyerFitScore,
+    peerRiskScore: classification.peerRiskScore,
+    shouldHideByDefault: classification.shouldHideByDefault,
+    matchedPositiveTerms: classification.matchedPositiveTerms,
+    matchedNegativeTerms: classification.matchedNegativeTerms,
+    rejectionReasons: classification.rejectionReasons,
+    classification,
   };
 }

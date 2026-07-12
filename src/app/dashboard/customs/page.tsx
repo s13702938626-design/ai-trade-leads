@@ -9,6 +9,8 @@ import { CustomsLeadTable } from "@/components/customs/CustomsLeadTable";
 import { CustomsSearchTemplates } from "@/components/customs/CustomsSearchTemplates";
 import { ConfirmCustomsLeadForm } from "@/components/customs/ConfirmCustomsLeadForm";
 import { deleteCustomsLead, listCustomsLeads } from "@/lib/customs-storage";
+import { inferProductLineFromText } from "@/lib/product-lines";
+import type { ProductLineId } from "@/types/search-intelligence";
 
 export default function CustomsPage() {
   const [leads, setLeads] = useState<CustomsLead[]>([]);
@@ -25,8 +27,9 @@ export default function CustomsPage() {
     return () => window.removeEventListener("customs-leads:updated", refresh);
   }, []);
 
-  function openSerper(query: string, country = "United States") {
-    const params = new URLSearchParams({ customsQuery: query, country });
+  function openSerper(query: string, country = "", productLineId?: ProductLineId) {
+    const inferredProductLine = productLineId ?? (inferProductLineFromText(query) || "custom");
+    const params = new URLSearchParams({ customsQuery: query, country, productLineId: inferredProductLine });
     window.location.href = `/dashboard/serper?${params.toString()}`;
   }
 

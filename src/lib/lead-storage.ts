@@ -31,6 +31,7 @@ function normalizeLead(lead: Lead): Lead {
     followUpTasks: Array.isArray(lead.followUpTasks) ? lead.followUpTasks : [],
     activities: Array.isArray(lead.activities) ? lead.activities : [],
     outreachDrafts: Array.isArray(lead.outreachDrafts) ? lead.outreachDrafts : [],
+    tags: Array.isArray(lead.tags) ? lead.tags : [],
   };
 }
 
@@ -134,6 +135,7 @@ export function createLead(input: LeadInput): Lead {
     followUpTasks: input.followUpTasks ?? [],
     activities: input.activities ?? [],
     outreachDrafts: input.outreachDrafts ?? [],
+    tags: input.tags ?? [],
     createdAt: now,
     updatedAt: now,
   };
@@ -189,6 +191,7 @@ export function updateLead(id: string, input: LeadInput): Lead {
     followUpTasks: input.followUpTasks ?? leads[index].followUpTasks ?? [],
     activities: input.activities ?? leads[index].activities ?? [],
     outreachDrafts: input.outreachDrafts ?? leads[index].outreachDrafts ?? [],
+    tags: input.tags ?? leads[index].tags ?? [],
     updatedAt: new Date().toISOString(),
   };
 

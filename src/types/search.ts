@@ -1,4 +1,19 @@
 import type { SearchMode } from "@/lib/search-strategies";
+import type {
+  BuyerPersonaId,
+  CandidateBusinessRole,
+  CandidateClassification,
+  ProductLineId,
+  SearchIntent,
+} from "@/types/search-intelligence";
+import type {
+  DemandFreshnessWindow,
+  DemandIntentType,
+  DemandRecommendedAction,
+  DemandSignalClassification,
+  RfqIntelMission,
+} from "@/types/demand-intelligence";
+import type { BuyerPlatformMission } from "@/types/buyer-platform";
 
 export type CandidateReviewDecision =
   | "save"
@@ -16,6 +31,16 @@ export type CandidateReview = {
   missingInfo: string[];
   suggestedCustomerType: string;
   suggestedProductKeyword: string;
+  businessRole?: CandidateBusinessRole;
+  productLineId?: ProductLineId;
+  buyerPersonaId?: BuyerPersonaId | "unknown";
+  buyerFitScore?: number;
+  peerRiskScore?: number;
+  shouldHideByDefault?: boolean;
+  matchedPositiveTerms?: string[];
+  matchedNegativeTerms?: string[];
+  rejectionReasons?: string[];
+  classification?: CandidateClassification;
 };
 
 export type SerperSearchCandidate = {
@@ -29,12 +54,30 @@ export type SerperSearchCandidate = {
   fetchedAt: string;
   searchRunId?: string | null;
   review?: CandidateReview;
+  productLineId?: ProductLineId;
+  buyerPersonaId?: BuyerPersonaId | "unknown";
+  searchIntent?: SearchIntent;
+  searchPlanId?: string;
+  classification?: CandidateClassification;
+  businessRole?: CandidateBusinessRole;
+  buyerFitScore?: number;
+  peerRiskScore?: number;
+  shouldHideByDefault?: boolean;
+  demandClassification?: DemandSignalClassification;
+  demandScore?: number;
+  demandIntentType?: DemandIntentType;
+  demandRecommendedAction?: DemandRecommendedAction;
+  demandEvidenceTerms?: string[];
+  demandFreshnessWindow?: DemandFreshnessWindow;
+  demandSerperTbs?: string;
+  rfqIntelMission?: RfqIntelMission;
+  buyerPlatformMission?: BuyerPlatformMission;
 };
 
 export type SearchRunRecord = {
   id: string;
   query: string;
-  mode: SearchMode | "custom";
+  mode: SearchMode | "buyer_search" | "custom";
   productKeyword: string;
   country: string;
   customerType: string;
@@ -46,5 +89,11 @@ export type SearchRunRecord = {
   reviewedRejectCount: number;
   reviewedUnknownCount: number;
   savedLeadCount: number;
+  targetEndUserCount?: number;
+  targetDistributorCount?: number;
+  peerSupplierCount?: number;
+  hiddenPeerCount?: number;
+  averageBuyerFitScore?: number;
+  highValueCandidateCount?: number;
   fetchedAt: string;
 };

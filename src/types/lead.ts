@@ -120,6 +120,7 @@ export type Lead = {
   followUpTasks?: LeadFollowUpTask[];
   activities?: LeadActivity[];
   outreachDrafts?: OutreachDraft[];
+  tags?: string[];
   createdAt: string;
   updatedAt: string;
 };

@@ -38,6 +38,7 @@ function initialForm(lead?: Lead): LeadInput {
     aiAnalysis: lead?.aiAnalysis ?? null,
     aiAnalyzedAt: lead?.aiAnalyzedAt ?? null,
     aiModel: lead?.aiModel ?? null,
+    tags: lead?.tags ?? [],
   };
 }
 

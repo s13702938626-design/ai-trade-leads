@@ -7,6 +7,7 @@ const titles: Record<string, string> = {
   "/dashboard": "控制台",
   "/dashboard/search": "搜索词生成",
   "/dashboard/serper": "Serper 实时搜索",
+  "/dashboard/demand": "需求信号搜索",
   "/dashboard/customs": "海关进口商",
   "/dashboard/followups": "客户开发动作台",
   "/dashboard/outreach": "开发话术中心",
@@ -22,7 +23,7 @@ export function Topbar() {
     <header className="border-b border-slate-200 bg-white px-4 py-4 md:px-8">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">v0.6 本地工作台</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">v0.8 本地工作台</p>
           <h1 className="mt-1 text-xl font-semibold text-slate-950">{title}</h1>
         </div>
         <div className="flex gap-2 md:hidden">

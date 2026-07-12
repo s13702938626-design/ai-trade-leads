@@ -7,6 +7,7 @@ const navItems = [
   { href: "/dashboard", label: "控制台" },
   { href: "/dashboard/search", label: "搜索词" },
   { href: "/dashboard/serper", label: "Serper 实时搜索" },
+  { href: "/dashboard/demand", label: "需求信号搜索" },
   { href: "/dashboard/customs", label: "海关进口商" },
   { href: "/dashboard/followups", label: "客户开发动作台" },
   { href: "/dashboard/outreach", label: "开发话术中心" },
@@ -21,7 +22,7 @@ export function Sidebar() {
     <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white md:block">
       <div className="border-b border-slate-200 px-5 py-5">
         <p className="text-sm font-semibold text-slate-950">AI Trade Leads</p>
-        <p className="mt-1 text-xs text-slate-500">塑料材料外贸 v0.6</p>
+        <p className="mt-1 text-xs text-slate-500">塑料材料外贸 v0.8</p>
       </div>
       <nav className="space-y-1 p-3">
         {navItems.map((item) => {

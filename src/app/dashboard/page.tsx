@@ -5,6 +5,7 @@ import type { Lead } from "@/types/lead";
 import { getFollowUpStats, getLeads } from "@/lib/lead-storage";
 import { getSearchRunStats } from "@/lib/search-run-storage";
 import { getCustomsLeadStats } from "@/lib/customs-storage";
+import { getMissionStats } from "@/lib/rfq-intel-storage";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LinkButton } from "@/components/ui/Button";
@@ -17,11 +18,24 @@ export default function DashboardPage() {
     reviewedSaveCount: 0,
     savedLeadCount: 0,
     saveRate: 0,
+    targetEndUserCount: 0,
+    targetDistributorCount: 0,
+    peerSupplierCount: 0,
+    hiddenPeerCount: 0,
+    averageBuyerFitScore: 0,
+    highValueCandidateCount: 0,
   });
   const [customsStats, setCustomsStats] = useState({
     total: 0,
     highPriority: 0,
     converted: 0,
+  });
+  const [missionStats, setMissionStats] = useState({
+    checkedCount: 0,
+    usefulCount: 0,
+    invalidOrOutdatedCount: 0,
+    needsRecheckCount: 0,
+    savedLeadCount: 0,
   });
 
   useEffect(() => {
@@ -29,15 +43,18 @@ export default function DashboardPage() {
       setLeads(getLeads());
       setSearchStats(getSearchRunStats());
       setCustomsStats(getCustomsLeadStats());
+      setMissionStats(getMissionStats());
     };
     refresh();
     window.addEventListener("leads:updated", refresh);
     window.addEventListener("search-runs:updated", refresh);
     window.addEventListener("customs-leads:updated", refresh);
+    window.addEventListener("rfq-intel:updated", refresh);
     return () => {
       window.removeEventListener("leads:updated", refresh);
       window.removeEventListener("search-runs:updated", refresh);
       window.removeEventListener("customs-leads:updated", refresh);
+      window.removeEventListener("rfq-intel:updated", refresh);
     };
   }, []);
 
@@ -70,6 +87,53 @@ export default function DashboardPage() {
           lead.pipelineStatus === "contacted"
         );
       }).length,
+    },
+  ];
+  const demandSignalLeads = leads.filter((lead) => lead.sourceType === "demand_signal_search");
+  const demandStats = [
+    { label: "需求信号已保存客户", value: demandSignalLeads.length },
+    { label: "RFQ / 找供应商类客户", value: demandSignalLeads.filter((lead) => (lead.tags ?? []).some((tag) => ["rfq", "looking-for-supplier"].includes(tag))).length },
+    { label: "采购/招标/替代类客户", value: demandSignalLeads.filter((lead) => (lead.tags ?? []).some((tag) => ["procurement", "tender", "substitution"].includes(tag))).length },
+    {
+      label: "高需求分线索",
+      value: demandSignalLeads.filter((lead) => /Demand score:\s*(6\d|7\d|8\d|9\d|100)/i.test(lead.evidenceText)).length,
+    },
+    {
+      label: "近半年需求信号客户",
+      value: demandSignalLeads.filter((lead) => /Freshness window:\s*past_6_months/i.test(lead.evidenceText) && /Is likely recent:\s*true/i.test(lead.evidenceText)).length,
+    },
+    {
+      label: "缺少日期待核实",
+      value: demandSignalLeads.filter((lead) => /Detected date text:\s*$/im.test(lead.evidenceText) || /date missing/i.test(lead.evidenceText)).length,
+    },
+    {
+      label: "疑似过期需求线索",
+      value: demandSignalLeads.filter((lead) => /Is likely outdated:\s*true/i.test(lead.evidenceText)).length,
+    },
+    { label: "已检查求购情报任务", value: missionStats.checkedCount },
+    { label: "有效求购任务", value: missionStats.usefulCount },
+    { label: "无效/过期任务", value: missionStats.invalidOrOutdatedCount },
+    { label: "需要人工核实任务", value: missionStats.needsRecheckCount },
+    { label: "情报任务保存线索", value: missionStats.savedLeadCount },
+    {
+      label: "买家平台任务线索",
+      value: demandSignalLeads.filter((lead) => (lead.tags ?? []).includes("buyer-platform")).length,
+    },
+    {
+      label: "RFQ平台线索",
+      value: demandSignalLeads.filter((lead) => (lead.tags ?? []).includes("rfq-platform")).length,
+    },
+    {
+      label: "电商渠道线索",
+      value: demandSignalLeads.filter((lead) => (lead.tags ?? []).includes("marketplace-channel")).length,
+    },
+    {
+      label: "招标采购线索",
+      value: demandSignalLeads.filter((lead) => (lead.tags ?? []).includes("tender-platform")).length,
+    },
+    {
+      label: "论坛线索",
+      value: demandSignalLeads.filter((lead) => (lead.tags ?? []).includes("forum-signal")).length,
     },
   ];
 
@@ -131,6 +195,22 @@ export default function DashboardPage() {
         </Card>
       </div>
 
+      <div className="grid gap-4 md:grid-cols-6">
+        {[
+          { label: "目标使用商候选", value: searchStats.targetEndUserCount },
+          { label: "贸易商/分销商候选", value: searchStats.targetDistributorCount },
+          { label: "识别为同行数量", value: searchStats.peerSupplierCount },
+          { label: "默认隐藏同行数量", value: searchStats.hiddenPeerCount },
+          { label: "平均 buyerFitScore", value: searchStats.averageBuyerFitScore },
+          { label: "高价值候选数量", value: searchStats.highValueCandidateCount },
+        ].map((item) => (
+          <Card key={item.label}>
+            <p className="text-sm text-slate-500">{item.label}</p>
+            <p className="mt-3 text-3xl font-semibold text-slate-950">{item.value}</p>
+          </Card>
+        ))}
+      </div>
+
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <p className="text-sm text-slate-500">海关线索数量</p>
@@ -173,6 +253,15 @@ export default function DashboardPage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         {outreachStats.map((item) => (
+          <Card key={item.label}>
+            <p className="text-sm text-slate-500">{item.label}</p>
+            <p className="mt-3 text-3xl font-semibold text-slate-950">{item.value}</p>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-4">
+        {demandStats.map((item) => (
           <Card key={item.label}>
             <p className="text-sm text-slate-500">{item.label}</p>
             <p className="mt-3 text-3xl font-semibold text-slate-950">{item.value}</p>

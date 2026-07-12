@@ -53,6 +53,7 @@ export function getSearchRunStats() {
   const records = readRecords();
   const candidateCount = records.reduce((sum, record) => sum + record.candidateCount, 0);
   const savedLeadCount = records.reduce((sum, record) => sum + record.savedLeadCount, 0);
+  const totalBuyerFit = records.reduce((sum, record) => sum + (record.averageBuyerFitScore ?? 0) * record.candidateCount, 0);
 
   return {
     searchCount: records.length,
@@ -60,6 +61,12 @@ export function getSearchRunStats() {
     reviewedSaveCount: records.reduce((sum, record) => sum + record.reviewedSaveCount, 0),
     savedLeadCount,
     saveRate: candidateCount > 0 ? savedLeadCount / candidateCount : 0,
+    targetEndUserCount: records.reduce((sum, record) => sum + (record.targetEndUserCount ?? 0), 0),
+    targetDistributorCount: records.reduce((sum, record) => sum + (record.targetDistributorCount ?? 0), 0),
+    peerSupplierCount: records.reduce((sum, record) => sum + (record.peerSupplierCount ?? 0), 0),
+    hiddenPeerCount: records.reduce((sum, record) => sum + (record.hiddenPeerCount ?? 0), 0),
+    averageBuyerFitScore: candidateCount > 0 ? Math.round(totalBuyerFit / candidateCount) : 0,
+    highValueCandidateCount: records.reduce((sum, record) => sum + (record.highValueCandidateCount ?? 0), 0),
   };
 }
 

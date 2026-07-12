@@ -19,8 +19,31 @@ export function SerperCandidateTable({
   onToggle,
   onStageSelected,
 }: SerperCandidateTableProps) {
-function displayDomain(candidate: SerperSearchCandidate): string {
+  function displayDomain(candidate: SerperSearchCandidate): string {
     return candidate.domain || getDomainFromSearchLink(candidate.link) || "";
+  }
+
+  function roleLabel(candidate: SerperSearchCandidate): string {
+    const role = candidate.businessRole ?? candidate.review?.businessRole ?? "unknown";
+    const labels = {
+      target_end_user: "使用商",
+      target_distributor: "贸易商/分销商",
+      target_trader: "贸易商/分销商",
+      peer_supplier: "同行/供应商",
+      directory_or_platform: "目录/平台",
+      content_article: "文章/内容",
+      irrelevant: "无关",
+      unknown: "未知",
+    };
+    return labels[role];
+  }
+
+  function roleTone(candidate: SerperSearchCandidate): "neutral" | "green" | "amber" | "red" | "blue" {
+    const role = candidate.businessRole ?? candidate.review?.businessRole ?? "unknown";
+    if (role === "target_end_user" || role === "target_distributor" || role === "target_trader") return "green";
+    if (role === "peer_supplier" || role === "irrelevant") return "red";
+    if (role === "directory_or_platform" || role === "content_article") return "amber";
+    return "neutral";
   }
 
   function decisionLabel(candidate: SerperSearchCandidate): string {
@@ -64,9 +87,16 @@ function displayDomain(candidate: SerperSearchCandidate): string {
               <th className="px-4 py-3">snippet</th>
               <th className="px-4 py-3">source link</th>
               <th className="px-4 py-3">预审分数</th>
+              <th className="px-4 py-3">客户角色</th>
+              <th className="px-4 py-3">buyerFitScore</th>
+              <th className="px-4 py-3">peerRiskScore</th>
+              <th className="px-4 py-3">产品线</th>
               <th className="px-4 py-3">匹配度</th>
               <th className="px-4 py-3">建议动作</th>
               <th className="px-4 py-3">主要理由</th>
+              <th className="px-4 py-3">命中正向词</th>
+              <th className="px-4 py-3">命中负向词</th>
+              <th className="px-4 py-3">拒绝理由</th>
               <th className="px-4 py-3">position</th>
               <th className="px-4 py-3">fetchedAt</th>
               <th className="px-4 py-3">操作</th>
@@ -94,6 +124,12 @@ function displayDomain(candidate: SerperSearchCandidate): string {
                 </td>
                 <td className="px-4 py-3 text-slate-700">{candidate.review?.score ?? 0}</td>
                 <td className="px-4 py-3">
+                  <Badge tone={roleTone(candidate)}>{roleLabel(candidate)}</Badge>
+                </td>
+                <td className="px-4 py-3 text-slate-700">{candidate.buyerFitScore ?? candidate.review?.buyerFitScore ?? 0}</td>
+                <td className="px-4 py-3 text-slate-700">{candidate.peerRiskScore ?? candidate.review?.peerRiskScore ?? 0}</td>
+                <td className="px-4 py-3 text-slate-700">{candidate.productLineId ?? candidate.review?.productLineId ?? "unknown"}</td>
+                <td className="px-4 py-3">
                   <Badge>{candidate.review?.fitLevel ?? "unknown"}</Badge>
                 </td>
                 <td className="px-4 py-3">
@@ -101,6 +137,15 @@ function displayDomain(candidate: SerperSearchCandidate): string {
                 </td>
                 <td className="max-w-sm px-4 py-3 text-slate-700">
                   {(candidate.review?.reasons ?? []).slice(0, 2).join("；")}
+                </td>
+                <td className="max-w-xs px-4 py-3 text-slate-700">
+                  {((candidate.review?.matchedPositiveTerms ?? candidate.classification?.matchedPositiveTerms) ?? []).slice(0, 4).join("；")}
+                </td>
+                <td className="max-w-xs px-4 py-3 text-slate-700">
+                  {((candidate.review?.matchedNegativeTerms ?? candidate.classification?.matchedNegativeTerms) ?? []).slice(0, 4).join("；")}
+                </td>
+                <td className="max-w-xs px-4 py-3 text-slate-700">
+                  {((candidate.review?.rejectionReasons ?? candidate.classification?.rejectionReasons) ?? []).slice(0, 2).join("；")}
                 </td>
                 <td className="px-4 py-3 text-slate-700">{candidate.position}</td>
                 <td className="px-4 py-3 text-slate-700">{candidate.fetchedAt}</td>

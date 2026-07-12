@@ -57,6 +57,7 @@ export default function SerperSearchPage() {
   const [searchRunId, setSearchRunId] = useState<string | null>(null);
   const [searchRuns, setSearchRuns] = useState<SearchRunRecord[]>([]);
   const [queryOverride, setQueryOverride] = useState("");
+  const [showHiddenResults, setShowHiddenResults] = useState(false);
 
   useEffect(() => {
     const refresh = () => setSearchRuns(listSearchRuns());
@@ -76,25 +77,35 @@ export default function SerperSearchPage() {
       research_more: candidates.filter((candidate) => candidate.review?.decision === "research_more").length,
       reject: candidates.filter((candidate) => candidate.review?.decision === "reject").length,
       unknown: candidates.filter((candidate) => candidate.review?.decision === "unknown" || !candidate.review).length,
+      targetEndUser: candidates.filter((candidate) => candidate.businessRole === "target_end_user").length,
+      targetDistributor: candidates.filter((candidate) => candidate.businessRole === "target_distributor" || candidate.businessRole === "target_trader").length,
+      peerSupplier: candidates.filter((candidate) => candidate.businessRole === "peer_supplier").length,
+      hidden: candidates.filter((candidate) => candidate.shouldHideByDefault).length,
+      highValue: candidates.filter((candidate) => (candidate.buyerFitScore ?? 0) >= 70 && (candidate.peerRiskScore ?? 0) < 40).length,
     };
   }, [candidates]);
   const visibleCandidates = useMemo(() => {
-    if (reviewFilter === "all") {
-      return candidates;
+    const filtered = reviewFilter === "all"
+      ? candidates
+      : candidates.filter((candidate) => (candidate.review?.decision ?? "unknown") === reviewFilter);
+
+    if (values?.hidePeerSuppliers && !showHiddenResults) {
+      return filtered.filter((candidate) => !candidate.shouldHideByDefault);
     }
 
-    return candidates.filter((candidate) => (candidate.review?.decision ?? "unknown") === reviewFilter);
-  }, [candidates, reviewFilter]);
+    return filtered;
+  }, [candidates, reviewFilter, showHiddenResults, values?.hidePeerSuppliers]);
   const relaxedQueries = useMemo(() => {
     if (!values || (debugInfo?.candidateCount ?? 1) > 0) {
       return [];
     }
 
-    return buildRelaxedQueries({
-      productKeyword: values.industry,
-      country: values.country,
-      customerType: values.customerType,
-    });
+      return buildRelaxedQueries({
+        productKeyword: values.industry,
+        country: values.country,
+        customerType: values.customerType,
+        productLineId: values.productLineId,
+      });
   }, [debugInfo?.candidateCount, values]);
 
   function createRunId(): string {
@@ -126,6 +137,8 @@ export default function SerperSearchPage() {
           country: nextValues.country,
           productKeyword: nextValues.industry,
           customerType: nextValues.customerType,
+          productLineId: nextValues.productLineId,
+          searchPlan: nextValues.searchPlan,
           limit: nextValues.limit,
         }),
       });
@@ -164,6 +177,14 @@ export default function SerperSearchPage() {
         reviewedRejectCount: candidatesWithRunId.filter((candidate) => candidate.review?.decision === "reject").length,
         reviewedUnknownCount: candidatesWithRunId.filter((candidate) => candidate.review?.decision === "unknown" || !candidate.review).length,
         savedLeadCount: 0,
+        targetEndUserCount: candidatesWithRunId.filter((candidate) => candidate.businessRole === "target_end_user").length,
+        targetDistributorCount: candidatesWithRunId.filter((candidate) => candidate.businessRole === "target_distributor" || candidate.businessRole === "target_trader").length,
+        peerSupplierCount: candidatesWithRunId.filter((candidate) => candidate.businessRole === "peer_supplier").length,
+        hiddenPeerCount: candidatesWithRunId.filter((candidate) => candidate.shouldHideByDefault).length,
+        averageBuyerFitScore: candidatesWithRunId.length > 0
+          ? Math.round(candidatesWithRunId.reduce((sum, candidate) => sum + (candidate.buyerFitScore ?? 0), 0) / candidatesWithRunId.length)
+          : 0,
+        highValueCandidateCount: candidatesWithRunId.filter((candidate) => (candidate.buyerFitScore ?? 0) >= 70 && (candidate.peerRiskScore ?? 0) < 40).length,
         fetchedAt: data.fetchedAt,
       });
     } catch {
@@ -178,7 +199,12 @@ export default function SerperSearchPage() {
     const willSelect = !selectedIds.includes(id);
     const decision = candidate?.review?.decision ?? "unknown";
 
-    if (willSelect && decision === "reject") {
+    if (willSelect && candidate?.businessRole === "peer_supplier") {
+      const confirmed = window.confirm("该结果可能是同行/供应商，不是目标客户。确定仍要保存吗？");
+      if (!confirmed) {
+        return;
+      }
+    } else if (willSelect && decision === "reject") {
       const confirmed = window.confirm("该候选结果被系统标记为不建议保存，是否仍要加入待确认录入？");
       if (!confirmed) {
         return;
@@ -250,7 +276,7 @@ export default function SerperSearchPage() {
       {candidates.length > 0 ? (
         <div className="space-y-4">
           <Card>
-            <div className="grid gap-3 md:grid-cols-5">
+            <div className="grid gap-3 md:grid-cols-6">
               <div className="rounded-md bg-slate-50 px-3 py-3">
                 <p className="text-xs text-slate-500">候选总数</p>
                 <p className="mt-1 text-xl font-semibold text-slate-950">{reviewStats.total}</p>
@@ -271,6 +297,36 @@ export default function SerperSearchPage() {
                 <p className="text-xs text-slate-600">证据不足</p>
                 <p className="mt-1 text-xl font-semibold text-slate-900">{reviewStats.unknown}</p>
               </div>
+              <div className="rounded-md bg-red-50 px-3 py-3">
+                <p className="text-xs text-red-700">隐藏结果</p>
+                <p className="mt-1 text-xl font-semibold text-red-900">{reviewStats.hidden}</p>
+              </div>
+            </div>
+            <div className="mt-3 grid gap-3 md:grid-cols-5">
+              <div className="rounded-md bg-emerald-50 px-3 py-3">
+                <p className="text-xs text-emerald-700">目标使用商</p>
+                <p className="mt-1 text-xl font-semibold text-emerald-900">{reviewStats.targetEndUser}</p>
+              </div>
+              <div className="rounded-md bg-sky-50 px-3 py-3">
+                <p className="text-xs text-sky-700">贸易商/分销商</p>
+                <p className="mt-1 text-xl font-semibold text-sky-900">{reviewStats.targetDistributor}</p>
+              </div>
+              <div className="rounded-md bg-slate-100 px-3 py-3">
+                <p className="text-xs text-slate-600">同行/供应商</p>
+                <p className="mt-1 text-xl font-semibold text-slate-900">{reviewStats.peerSupplier}</p>
+              </div>
+              <div className="rounded-md bg-emerald-50 px-3 py-3">
+                <p className="text-xs text-emerald-700">高价值候选</p>
+                <p className="mt-1 text-xl font-semibold text-emerald-900">{reviewStats.highValue}</p>
+              </div>
+              <label className="flex items-center gap-2 rounded-md bg-slate-50 px-3 py-3 text-sm text-slate-700">
+                <input
+                  checked={showHiddenResults}
+                  onChange={(event) => setShowHiddenResults(event.target.checked)}
+                  type="checkbox"
+                />
+                查看被隐藏的同行/无关结果
+              </label>
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               {REVIEW_FILTERS.map((filter) => (
@@ -349,7 +405,12 @@ export default function SerperSearchPage() {
                         customerType: values?.customerType ?? "",
                         limit: values?.limit ?? 10,
                         query: strategy.query,
-                        mode: strategy.mode,
+                        mode: "buyer_search",
+                        productLineId: strategy.productLineId,
+                        targetBuyerMode: values?.targetBuyerMode ?? "end_users",
+                        strictness: strategy.strictness,
+                        searchPlan: strategy,
+                        hidePeerSuppliers: values?.hidePeerSuppliers ?? true,
                       })
                     }
                   >
@@ -412,6 +473,10 @@ export default function SerperSearchPage() {
                 <th className="px-3 py-2">建议保存</th>
                 <th className="px-3 py-2">继续研究</th>
                 <th className="px-3 py-2">不建议</th>
+                <th className="px-3 py-2">使用商</th>
+                <th className="px-3 py-2">分销商</th>
+                <th className="px-3 py-2">同行</th>
+                <th className="px-3 py-2">高价值</th>
                 <th className="px-3 py-2">已保存</th>
               </tr>
             </thead>
@@ -426,6 +491,10 @@ export default function SerperSearchPage() {
                   <td className="px-3 py-2 text-slate-700">{record.reviewedSaveCount}</td>
                   <td className="px-3 py-2 text-slate-700">{record.reviewedResearchMoreCount}</td>
                   <td className="px-3 py-2 text-slate-700">{record.reviewedRejectCount}</td>
+                  <td className="px-3 py-2 text-slate-700">{record.targetEndUserCount ?? 0}</td>
+                  <td className="px-3 py-2 text-slate-700">{record.targetDistributorCount ?? 0}</td>
+                  <td className="px-3 py-2 text-slate-700">{record.peerSupplierCount ?? 0}</td>
+                  <td className="px-3 py-2 text-slate-700">{record.highValueCandidateCount ?? 0}</td>
                   <td className="px-3 py-2 text-slate-700">{record.savedLeadCount}</td>
                 </tr>
               ))}

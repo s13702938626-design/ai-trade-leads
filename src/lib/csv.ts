@@ -24,6 +24,7 @@ export const CSV_HEADERS: (keyof Lead)[] = [
   "notes",
   "fetchedAt",
   "searchRunId",
+  "tags",
   "createdAt",
   "updatedAt",
 ];
@@ -212,6 +213,7 @@ export function csvToLeads(csv: string): ImportResult {
         notes: record.notes ?? "",
         fetchedAt: record.fetchedAt ?? "",
         searchRunId: record.searchRunId || null,
+        tags: record.tags ? record.tags.split(/[;|,]/).map((tag) => tag.trim()).filter(Boolean) : [],
       });
       leads.push({
         ...lead,
