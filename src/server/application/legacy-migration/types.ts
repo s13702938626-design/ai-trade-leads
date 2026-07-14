@@ -1,0 +1,1 @@
+export type LegacyLeadPreflight = { index: number; itemHash: string; validationStatus: "valid" | "warning" | "invalid"; recommendedAction: "create_new" | "link_existing" | "manual_review" | "skip_invalid" | "duplicate_in_export"; warnings: string[]; errors: string[]; plannedAccountGroupKey: string | null; deferredFieldNames: string[]; payload: unknown };

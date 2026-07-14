@@ -8,6 +8,13 @@
       "when": 1784000936543,
       "tag": "0000_phase1_data_foundation",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1784017988999,
+      "tag": "0001_legacy_migration_staging",
+      "breakpoints": true
     }
   ]
 }

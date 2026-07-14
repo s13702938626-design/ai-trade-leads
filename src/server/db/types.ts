@@ -5,6 +5,8 @@ import type {
   accounts,
   evidence,
   sourceRuns,
+  legacyMigrationItems,
+  legacyMigrationRuns,
 } from "./schema";
 
 export type DbAccountRow = InferSelectModel<typeof accounts>;
@@ -18,3 +20,5 @@ export type DbEvidenceRow = InferSelectModel<typeof evidence>;
 export type DbNewEvidenceRow = InferInsertModel<typeof evidence>;
 export type DbSourceRunRow = InferSelectModel<typeof sourceRuns>;
 export type DbNewSourceRunRow = InferInsertModel<typeof sourceRuns>;
+export type DbLegacyMigrationRunRow = InferSelectModel<typeof legacyMigrationRuns>;
+export type DbLegacyMigrationItemRow = InferSelectModel<typeof legacyMigrationItems>;

@@ -1,0 +1,11 @@
+import type { AccountId, EvidenceId, SourceRunId } from "./common";
+export type LegacyMigrationStatus = "preflighted" | "importing" | "completed" | "partial" | "failed" | "rolled_back";
+export type LegacyMigrationValidationStatus = "valid" | "warning" | "invalid";
+export type LegacyMigrationRecommendedAction = "create_new" | "link_existing" | "manual_review" | "skip_invalid" | "duplicate_in_export";
+export type LegacyMigrationSelectedAction = "create_new" | "link_existing" | "skip" | null;
+export type LegacyMigrationImportStatus = "pending" | "ready" | "needs_review" | "skipped" | "imported" | "failed" | "rolled_back";
+export type LegacyMigrationAccountResult = "none" | "created" | "linked" | "retained" | "restored";
+export type LegacyMigrationEvidenceResult = "none" | "created" | "duplicate" | "restored";
+export type LegacyMigrationReport = { total: number; valid: number; warning: number; invalid: number; createAccount: number; linkAccount: number; manualReview: number; skipped: number; deferredFieldCounts: Record<string, number> };
+export type LegacyMigrationRun = { id: string; exportId: string; formatVersion: number; sourceStorageKey: string; sourceHash: string; sourceRunId: SourceRunId | null; status: LegacyMigrationStatus; totalCount: number; validCount: number; warningCount: number; invalidCount: number; createAccountCount: number; linkAccountCount: number; manualReviewCount: number; skippedCount: number; importedCount: number; failedCount: number; report: LegacyMigrationReport; errorMessage: string | null; createdAt: Date; updatedAt: Date; importedAt: Date | null; rolledBackAt: Date | null };
+export type LegacyMigrationItem = { id: string; migrationRunId: string; itemIndex: number; legacyLeadId: string | null; itemHash: string; validationStatus: LegacyMigrationValidationStatus; recommendedAction: LegacyMigrationRecommendedAction; selectedAction: LegacyMigrationSelectedAction; plannedAccountGroupKey: string | null; selectedAccountId: AccountId | null; accountId: AccountId | null; evidenceId: EvidenceId | null; candidateAccountIds: string[]; accountResult: LegacyMigrationAccountResult; evidenceResult: LegacyMigrationEvidenceResult; importStatus: LegacyMigrationImportStatus; warnings: string[]; errors: string[]; originalPayload: unknown; createdAt: Date; updatedAt: Date };

@@ -10,8 +10,10 @@
     "db:generate": "drizzle-kit generate --name phase1_data_foundation",
     "db:migrate": "tsx src/server/db/migrate.ts",
     "db:check": "drizzle-kit check",
-    "db:smoke": "tsx scripts/phase1-db-smoke.ts"
-    ,"test:phase1b": "tsx --test scripts/phase1b-repositories.test.ts"
+    "db:smoke": "tsx scripts/phase1-db-smoke.ts",
+    "test:phase1b": "tsx --test scripts/phase1b-repositories.test.ts",
+    "test:phase1c:restore": "tsx --test scripts/phase1c-restore.test.ts",
+    "test:phase1c": "tsx --test scripts/phase1c-legacy-migration.test.ts"
   },
   "dependencies": {
     "better-sqlite3": "12.11.1",

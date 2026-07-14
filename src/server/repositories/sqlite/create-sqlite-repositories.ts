@@ -3,5 +3,8 @@ import { RandomUuidGenerator, SystemClock, type Clock, type IdGenerator } from "
 import { SqliteAccountRepository } from "./sqlite-account-repository";
 import { SqliteEvidenceRepository } from "./sqlite-evidence-repository";
 import { SqliteSourceRunRepository } from "./sqlite-source-run-repository";
-export function createSqliteRepositories(connection: DatabaseConnection, options: { clock?: Clock; idGenerator?: IdGenerator } = {}) { const clock = options.clock ?? new SystemClock(); const ids = options.idGenerator ?? new RandomUuidGenerator(); return { accounts: new SqliteAccountRepository(connection, clock, ids), evidence: new SqliteEvidenceRepository(connection, clock, ids), sourceRuns: new SqliteSourceRunRepository(connection, clock, ids) }; }
+import { SqliteLegacyMigrationRepository } from "./sqlite-legacy-migration-repository";
+import { withAccountRestore, withEvidenceRestore } from "./restore-support";
+import type { AccountRepository, EvidenceRepository } from "../../domain/repositories";
+export function createSqliteRepositories(connection: DatabaseConnection, options: { clock?: Clock; idGenerator?: IdGenerator } = {}) { const clock = options.clock ?? new SystemClock(); const ids = options.idGenerator ?? new RandomUuidGenerator(); return { accounts: withAccountRestore(new SqliteAccountRepository(connection, clock, ids), connection, clock) as AccountRepository, evidence: withEvidenceRestore(new SqliteEvidenceRepository(connection, clock, ids), connection, clock) as EvidenceRepository, sourceRuns: new SqliteSourceRunRepository(connection, clock, ids), legacyMigrations: new SqliteLegacyMigrationRepository(connection, clock, ids) }; }
 export function getRepositories() { return createSqliteRepositories(getDatabase()); }

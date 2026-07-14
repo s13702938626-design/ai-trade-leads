@@ -1,0 +1,2 @@
+import { LegacyMigrationWizard } from "@/components/migration/LegacyMigrationWizard";
+export default function LegacyMigrationPage() { return <main className="mx-auto max-w-5xl p-6"><h1 className="text-2xl font-semibold text-slate-900">v1 旧数据迁移</h1><p className="mt-2 text-slate-600">迁移不会清除或改写旧 localStorage。仅 Account 与 Evidence 会正式进入 v1 数据层。</p><div className="mt-6 border border-slate-200 p-5"><LegacyMigrationWizard /></div></main>; }
