@@ -4,6 +4,22 @@
 
 当前版本不接数据库、不接邮箱群发，也不会自动保存搜索结果。Serper 搜索结果只能作为候选客户，必须由用户人工确认后才能保存。AI 和 Serper API Key 只在服务端读取，不会进入前端 bundle 或 localStorage。
 
+## v1 Phase 1A database development
+
+The v1 data foundation uses local SQLite. Its default database file is
+`data/ai-trade-leads.db`; set the non-sensitive `DATABASE_FILE` environment
+variable to use another local path. Database files are ignored by Git.
+
+```bash
+npm run db:generate
+npm run db:migrate
+npm run db:check
+npm run db:smoke
+```
+
+Phase 1A adds only the database foundation. The existing localStorage UI has
+not yet been replaced.
+
 ## 如何安装依赖
 
 ```bash

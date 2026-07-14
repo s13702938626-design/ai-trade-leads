@@ -6,9 +6,15 @@
     "dev": "next dev",
     "lint": "eslint .",
     "build": "next build",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate --name phase1_data_foundation",
+    "db:migrate": "tsx src/server/db/migrate.ts",
+    "db:check": "drizzle-kit check",
+    "db:smoke": "tsx scripts/phase1-db-smoke.ts"
   },
   "dependencies": {
+    "better-sqlite3": "12.11.1",
+    "drizzle-orm": "0.45.2",
     "next": "^15.3.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
@@ -16,12 +22,15 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@tailwindcss/postcss": "^4.1.11",
+    "@types/better-sqlite3": "7.6.13",
     "@types/node": "^22.15.30",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
+    "drizzle-kit": "0.31.10",
     "eslint": "^9.29.0",
     "eslint-config-next": "^15.3.5",
     "tailwindcss": "^4.1.11",
+    "tsx": "4.23.0",
     "typescript": "^5.8.3"
   }
 }
