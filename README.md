@@ -20,6 +20,11 @@ npm run db:smoke
 Phase 1A adds only the database foundation. The existing localStorage UI has
 not yet been replaced.
 
+Phase 1B adds domain-first Repository interfaces. The domain layer does not
+depend on Drizzle, SQLite is only the first implementation, and Account matching
+returns explainable candidates without automatic merges. Evidence raw fields
+remain immutable. Run `npm run test:phase1b` for the Repository test suite.
+
 ## 如何安装依赖
 
 ```bash

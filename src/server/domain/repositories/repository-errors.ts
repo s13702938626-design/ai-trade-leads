@@ -1,0 +1,6 @@
+export class RepositoryError extends Error { constructor(message: string, public readonly cause?: unknown) { super(message); this.name = "RepositoryError"; } }
+export class RepositoryValidationError extends RepositoryError { constructor(message: string, cause?: unknown) { super(message, cause); this.name = "RepositoryValidationError"; } }
+export class RepositoryNotFoundError extends RepositoryError { constructor(message: string) { super(message); this.name = "RepositoryNotFoundError"; } }
+export class RepositoryForeignKeyError extends RepositoryError { constructor(message: string, cause?: unknown) { super(message, cause); this.name = "RepositoryForeignKeyError"; } }
+export class ImmutableEvidenceError extends RepositoryError { constructor(message = "Evidence raw fields are immutable.", cause?: unknown) { super(message, cause); this.name = "ImmutableEvidenceError"; } }
+export class RepositoryConflictError extends RepositoryError { constructor(public readonly code: "duplicate_evidence_external_id" | "duplicate_evidence_url_content" | "duplicate_account_alias" | "duplicate_account_identifier", message: string, public readonly entityType: string, public readonly conflictingId: string | null = null, cause?: unknown) { super(message, cause); this.name = "RepositoryConflictError"; } }

@@ -1,0 +1,4 @@
+import { parse } from "tldts";
+import { ValidationError } from "../entities/common";
+export function normalizeCountryCode(value: string | null | undefined): string | null { if (value == null || !value.trim()) return null; const code = value.trim().toUpperCase(); if (!/^[A-Z]{2}$/.test(code)) throw new ValidationError("Country code must be two letters."); return code; }
+export function normalizeDomain(value: string | null | undefined): string | null { if (value == null || !value.trim()) return null; const input = value.trim(); let hostname: string; try { hostname = new URL(/^[a-z][a-z0-9+.-]*:/i.test(input) ? input : `https://${input}`).hostname; } catch { throw new ValidationError("Domain must be a valid HTTP/HTTPS URL or hostname."); } const parsed = parse(hostname.toLowerCase().replace(/\.$/, ""), { allowPrivateDomains: false }); if (!parsed.hostname) throw new ValidationError("Domain is required."); return parsed.domain ?? parsed.hostname; }

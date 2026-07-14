@@ -1,0 +1,5 @@
+import type { AccountId, AccountType, DedupeConfidence, EvidenceId, MergeStatus } from "./common";
+
+export type Account = { id: AccountId; displayName: string; normalizedName: string; websiteUrl: string | null; normalizedDomain: string | null; countryCode: string | null; accountType: AccountType | null; mergeStatus: MergeStatus; mergedIntoAccountId: AccountId | null; dedupeConfidence: DedupeConfidence; dedupeReasons: string[]; excludedReason: string | null; createdAt: Date; updatedAt: Date; deletedAt: Date | null };
+export type AccountAlias = { id: string; accountId: AccountId; aliasName: string; normalizedAlias: string; languageCode: string | null; sourceEvidenceId: EvidenceId | null; createdAt: Date; deletedAt: Date | null };
+export type AccountIdentifier = { id: string; accountId: AccountId; identifierType: "official_registration_id" | "tax_id" | "platform_company_id" | "customs_importer_id" | "other"; identifierNamespace: string; identifierValue: string; normalizedValue: string; issuingCountryCode: string | null; sourceEvidenceId: EvidenceId | null; createdAt: Date; deletedAt: Date | null };

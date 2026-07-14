@@ -11,13 +11,15 @@
     "db:migrate": "tsx src/server/db/migrate.ts",
     "db:check": "drizzle-kit check",
     "db:smoke": "tsx scripts/phase1-db-smoke.ts"
+    ,"test:phase1b": "tsx --test scripts/phase1b-repositories.test.ts"
   },
   "dependencies": {
     "better-sqlite3": "12.11.1",
     "drizzle-orm": "0.45.2",
     "next": "^15.3.5",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tldts": "7.4.8"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

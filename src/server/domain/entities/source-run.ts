@@ -1,0 +1,2 @@
+import type { SourceRunId, SourceRunStatus } from "./common";
+export type SourceRun = { id: SourceRunId; adapterId: string; sourceType: string; status: SourceRunStatus; inputSummary: Record<string, unknown>; resultCounts: { raw: number; accepted: number; duplicate: number; unresolved: number; failed: number }; startedAt: Date; finishedAt: Date | null; errorMessage: string | null; createdAt: Date; updatedAt: Date };
