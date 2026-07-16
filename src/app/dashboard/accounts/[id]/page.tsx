@@ -1,0 +1,1 @@
+export default async function AccountDetailPage({ params }: { params: Promise<{ id: string }> }) { const { id } = await params; return <main className="mx-auto max-w-6xl p-6"><h1 className="text-2xl font-semibold">公司详情</h1><p className="mt-3 text-sm text-slate-600">公司 {id} 的域名、来源证据、Signal、Opportunity、联系人和开发动作仅在真实数据存在时显示。</p></main>; }

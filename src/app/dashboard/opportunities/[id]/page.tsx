@@ -1,0 +1,1 @@
+export default async function OpportunityDetailPage({ params }: { params: Promise<{ id: string }> }) { const { id } = await params; return <main className="mx-auto max-w-6xl p-6"><h1 className="text-2xl font-semibold">机会详情</h1><p className="mt-3 text-sm text-slate-600">机会 {id} 的 Evidence、Signal、评分构成、风险、生命周期和人工开发动作会在本地数据库记录后显示。</p></main>; }
