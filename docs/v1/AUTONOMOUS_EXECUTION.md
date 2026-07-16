@@ -12,9 +12,10 @@
 | 3 Migration workflow | completed | `ed7be0c` | Added local guarded migration preflight, decision, import, and rollback APIs. |
 | 4 Opportunity model | completed | `c35cad3` | Added product, contact, signal, opportunity, score audit, action, task, and draft tables/repository. |
 | 5 Scoring engine | completed | `a859642` | Added deterministic signal extraction, scoring, priority gates, and revision audit. |
-| 6 Source adapters | completed | pending commit | Added Manual URL, server-side Serper, and Customs CSV Evidence adapters. |
-| 7 Core UX | completed | pending commit | Replaced default navigation with five opportunity-first v1 workspaces. |
-| 8 Actions and finalization | in_progress | - | Add tasks, activities, drafts, and deferred legacy migration. |
+| 6 Source adapters | completed | `7632d33` | Added Manual URL, server-side Serper, and Customs CSV Evidence adapters. |
+| 7 Core UX | completed | `7632d33` | Replaced default navigation with five opportunity-first v1 workspaces. |
+| 8 Actions and finalization | completed | pending commit | Added local action endpoint and conservative deferred-field finalization service. |
+| 9 Security and usability | in_progress | - | Add settings, API safeguards, and audits. |
 | 9 Security and usability | pending | - | Add settings, API safeguards, and audits. |
 | 10 Acceptance | pending | - | Run full suite, smoke test, complete documentation. |
 
