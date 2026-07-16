@@ -10,8 +10,9 @@
 | 1 Legacy import core | completed | `d0b02e2` | Implemented idempotent Account/Evidence import with SourceRun provenance. |
 | 2 Rollback and recovery | completed | `783641f` | Added soft-delete rollback and original-ID recovery import. |
 | 3 Migration workflow | completed | `ed7be0c` | Added local guarded migration preflight, decision, import, and rollback APIs. |
-| 4 Opportunity model | completed | pending commit | Added product, contact, signal, opportunity, score audit, action, task, and draft tables/repository. |
-| 5 Scoring engine | in_progress | - | Add deterministic signals and score audit. |
+| 4 Opportunity model | completed | `c35cad3` | Added product, contact, signal, opportunity, score audit, action, task, and draft tables/repository. |
+| 5 Scoring engine | completed | pending commit | Added deterministic signal extraction, scoring, priority gates, and revision audit. |
+| 6 Source adapters | in_progress | - | Add Manual URL, Serper, and Customs CSV evidence adapters. |
 | 6 Source adapters | pending | - | Add Manual URL, Serper, and Customs CSV evidence adapters. |
 | 7 Core UX | pending | - | Replace default navigation with opportunity-first pages. |
 | 8 Actions and finalization | pending | - | Add tasks, activities, drafts, and deferred legacy migration. |
