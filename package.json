@@ -16,7 +16,9 @@
     "test:phase1c": "tsx --test scripts/phase1c-legacy-migration.test.ts",
     "test:phase1c:import": "tsx --test scripts/phase1c-import.test.ts",
     "test:phase1c:rollback": "tsx --test scripts/phase1c-rollback.test.ts",
-    "test:v1:scoring": "tsx --test scripts/v1-scoring.test.ts"
+    "test:v1:scoring": "tsx --test scripts/v1-scoring.test.ts",
+    "test:v1:acceptance": "tsx --test scripts/v1-acceptance.test.ts",
+    "test:v1": "npm run db:smoke && npm run test:phase1b && npm run test:phase1c:restore && npm run test:phase1c && npm run test:phase1c:import && npm run test:phase1c:rollback && npm run test:v1:scoring && npm run test:v1:acceptance"
   },
   "dependencies": {
     "better-sqlite3": "12.11.1",

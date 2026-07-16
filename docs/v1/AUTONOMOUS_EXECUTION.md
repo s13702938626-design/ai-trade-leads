@@ -2,7 +2,7 @@
 
 - Baseline: `1fc852f614282314a6c0da269dbe126c5c1d19e4`
 - Branch: `v1-opportunity-radar`
-- Status: in_progress
+- Status: completed
 
 | Phase | Status | Commit | Next action |
 | --- | --- | --- | --- |
@@ -14,9 +14,8 @@
 | 5 Scoring engine | completed | `a859642` | Added deterministic signal extraction, scoring, priority gates, and revision audit. |
 | 6 Source adapters | completed | `7632d33` | Added Manual URL, server-side Serper, and Customs CSV Evidence adapters. |
 | 7 Core UX | completed | `7632d33` | Replaced default navigation with five opportunity-first v1 workspaces. |
-| 8 Actions and finalization | completed | pending commit | Added local action endpoint and conservative deferred-field finalization service. |
-| 9 Security and usability | in_progress | - | Add settings, API safeguards, and audits. |
-| 9 Security and usability | pending | - | Add settings, API safeguards, and audits. |
-| 10 Acceptance | pending | - | Run full suite, smoke test, complete documentation. |
+| 8 Actions and finalization | completed | `87907ef` | Added local action endpoint and conservative deferred-field finalization service. |
+| 9 Security and usability | completed | pending final commit | Added v1 settings, safe URL handling, server-only source behavior, and safe API summaries. |
+| 10 Acceptance | completed | pending final commit | Added unified v1 suite, fresh-database acceptance, user guide, security notes, and final acceptance record. |
 
-Current failed tests: none known at start. This document is updated at each autonomous phase commit.
+Final acceptance: `npm run test:v1`, `db:check`, lint, typecheck, and production build passed. No failed tests are known.
