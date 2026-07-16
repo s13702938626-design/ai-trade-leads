@@ -15,7 +15,7 @@
 | 6 Source adapters | completed | `7632d33` | Added Manual URL, server-side Serper, and Customs CSV Evidence adapters. |
 | 7 Core UX | completed | `7632d33` | Replaced default navigation with five opportunity-first v1 workspaces. |
 | 8 Actions and finalization | completed | `87907ef` | Added local action endpoint and conservative deferred-field finalization service. |
-| 9 Security and usability | completed | pending final commit | Added v1 settings, safe URL handling, server-only source behavior, and safe API summaries. |
-| 10 Acceptance | completed | pending final commit | Added unified v1 suite, fresh-database acceptance, user guide, security notes, and final acceptance record. |
+| 9 Security and usability | completed | `b65ff2f` | Added v1 settings, safe URL handling, server-only source behavior, and safe API summaries. |
+| 10 Acceptance | completed | `291ad20` | Added unified v1 suite, fresh-database acceptance, user guide, security notes, and final acceptance record. |
 
 Final acceptance: `npm run test:v1`, `db:check`, lint, typecheck, and production build passed. No failed tests are known.
