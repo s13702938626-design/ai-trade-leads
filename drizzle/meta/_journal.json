@@ -15,6 +15,13 @@
       "when": 1784017988999,
       "tag": "0001_legacy_migration_staging",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1784203612400,
+      "tag": "0002_opportunity_engine",
+      "breakpoints": true
     }
   ]
 }
