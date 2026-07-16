@@ -1,0 +1,1 @@
+export default function ActionsPage() { return <main className="mx-auto max-w-6xl p-6"><h1 className="text-2xl font-semibold">开发动作</h1><p className="mt-6 border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">暂无人工创建的跟进任务或开发草稿。系统不会自动联系客户。</p></main>; }

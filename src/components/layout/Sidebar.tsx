@@ -4,14 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/dashboard", label: "控制台" },
-  { href: "/dashboard/search", label: "搜索词" },
-  { href: "/dashboard/serper", label: "Serper 实时搜索" },
-  { href: "/dashboard/customs", label: "海关进口商" },
-  { href: "/dashboard/followups", label: "客户开发动作台" },
-  { href: "/dashboard/outreach", label: "开发话术中心" },
-  { href: "/dashboard/leads", label: "客户" },
-  { href: "/dashboard/export", label: "导入导出" },
+  { href: "/dashboard", label: "今日机会" },
+  { href: "/dashboard/accounts", label: "公司库" },
+  { href: "/dashboard/verification", label: "机会核实" },
+  { href: "/dashboard/actions", label: "开发动作" },
+  { href: "/dashboard/settings", label: "设置" },
 ];
 
 export function Sidebar() {
@@ -20,8 +17,8 @@ export function Sidebar() {
   return (
     <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white md:block">
       <div className="border-b border-slate-200 px-5 py-5">
-        <p className="text-sm font-semibold text-slate-950">AI Trade Leads</p>
-        <p className="mt-1 text-xs text-slate-500">塑料材料外贸 v0.6</p>
+        <p className="text-sm font-semibold text-slate-950">科聚隆机会雷达</p>
+        <p className="mt-1 text-xs text-slate-500">本地单用户 v1</p>
       </div>
       <nav className="space-y-1 p-3">
         {navItems.map((item) => {

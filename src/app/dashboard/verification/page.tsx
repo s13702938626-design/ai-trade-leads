@@ -1,0 +1,1 @@
+export default function VerificationPage() { return <main className="mx-auto max-w-6xl p-6"><h1 className="text-2xl font-semibold">机会核实</h1><p className="mt-6 border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">暂无待核实 Evidence 或 Opportunity。</p></main>; }

@@ -11,11 +11,10 @@
 | 2 Rollback and recovery | completed | `783641f` | Added soft-delete rollback and original-ID recovery import. |
 | 3 Migration workflow | completed | `ed7be0c` | Added local guarded migration preflight, decision, import, and rollback APIs. |
 | 4 Opportunity model | completed | `c35cad3` | Added product, contact, signal, opportunity, score audit, action, task, and draft tables/repository. |
-| 5 Scoring engine | completed | pending commit | Added deterministic signal extraction, scoring, priority gates, and revision audit. |
-| 6 Source adapters | in_progress | - | Add Manual URL, Serper, and Customs CSV evidence adapters. |
-| 6 Source adapters | pending | - | Add Manual URL, Serper, and Customs CSV evidence adapters. |
-| 7 Core UX | pending | - | Replace default navigation with opportunity-first pages. |
-| 8 Actions and finalization | pending | - | Add tasks, activities, drafts, and deferred legacy migration. |
+| 5 Scoring engine | completed | `a859642` | Added deterministic signal extraction, scoring, priority gates, and revision audit. |
+| 6 Source adapters | completed | pending commit | Added Manual URL, server-side Serper, and Customs CSV Evidence adapters. |
+| 7 Core UX | completed | pending commit | Replaced default navigation with five opportunity-first v1 workspaces. |
+| 8 Actions and finalization | in_progress | - | Add tasks, activities, drafts, and deferred legacy migration. |
 | 9 Security and usability | pending | - | Add settings, API safeguards, and audits. |
 | 10 Acceptance | pending | - | Run full suite, smoke test, complete documentation. |
 
